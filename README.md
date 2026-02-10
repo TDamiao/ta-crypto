@@ -114,13 +114,19 @@ Orderflow proxies:
 Automated npm publish runs on tag push. Steps:
 
 1. Ensure `NPM_TOKEN` is set in GitHub Actions secrets.
-2. Bump version (optional):
+2. Update changelog (recommended):
+
+```bash
+npm run changelog
+```
+
+3. Bump version (optional):
 
 ```bash
 npm run version:patch
 ```
 
-3. Run:
+4. Run:
 
 ```bash
 npm run release
