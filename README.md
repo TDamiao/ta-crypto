@@ -114,6 +114,7 @@ Orderflow proxies:
 Automated npm publish runs on tag push. Steps:
 
 1. Ensure `NPM_TOKEN` is set in GitHub Actions secrets.
+   - For GitHub Packages, set `GITHUB_TOKEN` (already provided) or a PAT if needed.
 2. Update changelog (recommended):
 
 ```bash
@@ -137,6 +138,9 @@ Or do everything in one step:
 ```bash
 npm run release:patch
 ```
+
+GitHub Packages:
+- A separate workflow publishes `@TDamiao/ta-crypto` to GitHub Packages on the same tag.
 
 This creates and pushes a tag like `v0.1.1`, triggering the release workflow.
 
