@@ -1,6 +1,6 @@
-﻿{
+{
   "name": "ta-crypto",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Technical analysis for crypto markets in Node.js",
   "type": "module",
   "license": "MIT",
