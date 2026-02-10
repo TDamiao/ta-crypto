@@ -1,8 +1,8 @@
-# Changelog
+﻿# Changelog
 
 ## 0.1.0 - 2026-02-10
 
-- Initial release of `@tdamiao/pandas_btc`.
+- Initial release of `ta-crypto`.
 - Core indicators: `sma`, `ema`, `rma`, `hl2`, `hlc3`, `ohlc4`, `vwap`, `bbands`.
 - Momentum: `rsi`, `macd`, `stoch`.
 - Volatility: `trueRange`, `atr`, `natr`, `realizedVolatility`.
@@ -10,3 +10,4 @@
 - Volume: `obv`, `mfi`.
 - Trend: `adx`.
 - Crypto extras: `vwapSession`, `fundingRateCumulative`, `fundingRateAPR`, `volatilityRegime`, `signedVolume`, `volumeDelta`, `orderflowImbalance`.
+

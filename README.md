@@ -1,6 +1,6 @@
-﻿# pandas_btc
+﻿# ta-crypto
 
-[![npm version](https://img.shields.io/npm/v/pandas-btc.svg)](https://www.npmjs.com/package/pandas-btc)
+[![npm version](https://img.shields.io/npm/v/ta-crypto.svg)](https://www.npmjs.com/package/ta-crypto)
 [![CI](https://github.com/tdamiao/pandas-btc/actions/workflows/ci.yml/badge.svg)](https://github.com/tdamiao/pandas-btc/actions/workflows/ci.yml)
 
 Technical analysis indicators for crypto markets in Node.js. Inspired by pandas-ta, but focused on crypto use-cases and Node-friendly APIs.
@@ -14,7 +14,7 @@ Technical analysis indicators for crypto markets in Node.js. Inspired by pandas-
 ## Install
 
 ```bash
-npm i pandas-btc
+npm i ta-crypto
 ```
 
 ## Quick Start
@@ -37,7 +37,7 @@ import {
   mfi,
   stoch,
   adx
-} from "pandas-btc";
+} from "ta-crypto";
 
 const close = [101, 102, 99, 105, 110, 108, 111];
 const open =  [100, 101, 100, 103, 108, 109, 110];
@@ -112,3 +112,4 @@ Orderflow proxies:
 ## License
 
 MIT
+
