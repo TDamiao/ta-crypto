@@ -31,7 +31,7 @@ jobs:
           cache: npm
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
       - run: npm ci
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -r scripts/requirements-compat.txt

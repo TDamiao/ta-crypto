@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 - 2026-02-10
+
+- Fix release compatibility environment to Python 3.12 in CI and publish workflows.
+- Keep TA-Lib, pandas-ta, and technicalindicators compatibility checks as release gate.
+
 ## 0.2.0 - 2026-02-10
 
 - Add trust layer with golden tests for SMA/EMA/RSI/MACD/BBANDS/ATR/ADX and session VWAP.

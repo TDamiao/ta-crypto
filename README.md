@@ -91,7 +91,7 @@ npm run test:compat:python
 ```
 
 Note:
-- CI uses Linux + Python 3.11 for full TA-Lib/pandas-ta coverage.
+- CI uses Linux + Python 3.12 for full TA-Lib/pandas-ta coverage.
 - On Windows, `pandas-ta` may be unavailable depending on upstream wheels; the script reports explicit skip in that case.
 
 ## Crypto Playbooks
