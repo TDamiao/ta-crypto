@@ -1,5 +1,5 @@
 ﻿{
-  "name": "pandas-btc",
+  "name": "ta-crypto",
   "version": "0.1.0",
   "description": "Technical analysis for crypto markets in Node.js",
   "type": "module",
@@ -38,10 +38,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/tdamiao/pandas_btc.git"
+    "url": "https://github.com/TDamiao/ta-crypto.git"
   },
   "bugs": {
-    "url": "https://github.com/tdamiao/pandas_btc/issues"
+    "url": "https://github.com/TDamiao/ta-crypto/issues"
   },
-  "homepage": "https://github.com/tdamiao/pandas_btc#readme"
+  "homepage": "https://github.com/TDamiao/ta-crypto#readme"
 }

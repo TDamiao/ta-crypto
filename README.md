@@ -1,7 +1,7 @@
 ﻿# ta-crypto
 
 [![npm version](https://img.shields.io/npm/v/ta-crypto.svg)](https://www.npmjs.com/package/ta-crypto)
-[![CI](https://github.com/tdamiao/pandas-btc/actions/workflows/ci.yml/badge.svg)](https://github.com/tdamiao/pandas-btc/actions/workflows/ci.yml)
+[![CI](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml)
 
 Technical analysis indicators for crypto markets in Node.js. Inspired by pandas-ta, but focused on crypto use-cases and Node-friendly APIs.
 
