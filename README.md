@@ -109,6 +109,20 @@ Volatility regimes:
 Orderflow proxies:
 - `signedVolume`, `volumeDelta`, and `orderflowImbalance` infer buy/sell pressure from candle direction.
 
+## Release
+
+Automated npm publish runs on tag push. Steps:
+
+1. Ensure `NPM_TOKEN` is set in GitHub Actions secrets.
+2. Bump `version` in `package.json`.
+3. Run:
+
+```bash
+npm run release
+```
+
+This creates and pushes a tag like `v0.1.1`, triggering the release workflow.
+
 ## License
 
 MIT
