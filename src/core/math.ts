@@ -1,5 +1,13 @@
-﻿export function isNum(value: unknown): value is number {
+export function isNum(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+export function assertFiniteSeries(name: string, values: number[]): void {
+  for (let i = 0; i < values.length; i++) {
+    if (!isNum(values[i])) {
+      throw new Error(`${name}[${i}] must be a finite number`);
+    }
+  }
 }
 
 export function assertSameLength(...series: number[][]): void {
@@ -7,7 +15,7 @@ export function assertSameLength(...series: number[][]): void {
   const len = series[0].length;
   for (const s of series) {
     if (s.length !== len) {
-      throw new Error("All series must have the same length");
+      throw new Error(`All series must have the same length (expected ${len}, got ${s.length})`);
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "ta-crypto",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Technical analysis for crypto markets in Node.js",
   "type": "module",
   "license": "MIT",
@@ -9,8 +9,25 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./indicators": {
+      "types": "./dist/indicators.d.ts",
+      "import": "./dist/indicators.js"
+    },
+    "./crypto": {
+      "types": "./dist/crypto.d.ts",
+      "import": "./dist/crypto.js"
+    },
+    "./candles": {
+      "types": "./dist/candles.d.ts",
+      "import": "./dist/candles.js"
+    },
+    "./stateful": {
+      "types": "./dist/stateful.d.ts",
+      "import": "./dist/stateful.js"
     }
   },
+  "sideEffects": false,
   "types": "dist/index.d.ts",
   "main": "dist/index.js",
   "files": [
@@ -30,10 +47,18 @@
     "version:minor": "npm version minor",
     "version:major": "npm version major",
     "changelog": "node ./scripts/changelog.js",
-    "test": "node -e \"console.log('no tests yet')\""
+    "generate:golden": "npm run build && node ./scripts/generate-golden.js",
+    "generate:compat": "npm run build && node ./scripts/export-compat-vectors.js",
+    "bench": "npm run build && node ./scripts/bench.js",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "test:golden": "npm run build && node --test test/golden.test.mjs",
+    "test:compat:technicalindicators": "npm run generate:compat && node ./scripts/compare-technicalindicators.js",
+    "test:compat:python": "npm run generate:compat && python ./scripts/compare-python-refs.py",
+    "test:compat": "npm run test:compat:technicalindicators && npm run test:compat:python"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",
+    "technicalindicators": "^3.1.0",
     "typescript": "^5.4.5"
   },
   "keywords": [

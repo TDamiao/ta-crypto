@@ -19,8 +19,16 @@ jobs:
           node-version: 20
           registry-url: "https://npm.pkg.github.com"
           scope: "@TDamiao"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - run: npm ci
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r scripts/requirements-compat.txt
       - run: npm run build
+      - run: npm test
+      - run: npm run test:compat:technicalindicators
+      - run: npm run test:compat:python
       - name: Set scoped name for GitHub Packages
         run: node -e "const fs=require('fs');const p='package.json';const j=JSON.parse(fs.readFileSync(p));j.name='@TDamiao/ta-crypto';fs.writeFileSync(p,JSON.stringify(j,null,2));"
       - name: Publish to GitHub Packages

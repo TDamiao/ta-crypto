@@ -1,12 +1,10 @@
-import { makeSeries } from "./math.js";
+import { assertSameLength, makeSeries } from "./math.js";
 import { rma } from "./overlap.js";
 import { trueRange } from "./volatility.js";
 
 export function adx(high: number[], low: number[], close: number[], length = 14) {
+  assertSameLength(high, low, close);
   const len = close.length;
-  if (high.length !== len || low.length !== len) {
-    throw new Error("All series must have the same length");
-  }
 
   const plusDM: number[] = new Array(len).fill(0);
   const minusDM: number[] = new Array(len).fill(0);

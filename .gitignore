@@ -9,3 +9,4 @@ yarn-error.log*
 pnpm-debug.log*
 .vscode/
 *.tsbuildinfo
+test/fixtures/compat-current.json

@@ -1,9 +1,7 @@
-import { makeSeries } from "./math.js";
+import { assertSameLength, makeSeries } from "./math.js";
 
 export function obv(close: number[], volume: number[]): Array<number | null> {
-  if (close.length !== volume.length) {
-    throw new Error("All series must have the same length");
-  }
+  assertSameLength(close, volume);
   const out = makeSeries(close.length);
   let acc = 0;
   for (let i = 0; i < close.length; i++) {
@@ -25,10 +23,8 @@ export function mfi(
   volume: number[],
   length = 14
 ): Array<number | null> {
+  assertSameLength(high, low, close, volume);
   const len = close.length;
-  if (high.length !== len || low.length !== len || volume.length !== len) {
-    throw new Error("All series must have the same length");
-  }
 
   const out = makeSeries(len);
   if (length <= 0) return out;

@@ -3,13 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/ta-crypto.svg)](https://www.npmjs.com/package/ta-crypto)
 [![CI](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml)
 
-Technical analysis indicators for crypto markets in Node.js. Inspired by pandas-ta, but focused on crypto use-cases and Node-friendly APIs.
-
-## Features
-
-- Typed, lightweight indicators for OHLCV arrays
-- Crypto-specific extras like session VWAP, funding rate helpers, volatility regimes, and orderflow proxies
-- Functions return arrays aligned to input length with `null` for insufficient data
+Technical analysis indicators for crypto markets in Node.js.
 
 ## Install
 
@@ -20,56 +14,104 @@ npm i ta-crypto
 ## Quick Start
 
 ```ts
-import {
-  ta,
-  sma,
-  rsi,
-  macd,
-  bbands,
-  atr,
-  vwap,
-  vwapSession,
-  realizedVolatility,
-  fundingRateCumulative,
-  volatilityRegime,
-  orderflowImbalance,
-  obv,
-  mfi,
-  stoch,
-  adx
-} from "ta-crypto";
+import { sma, rsi, macd, bbands, atr, vwapSession, toOHLCV } from "ta-crypto";
 
-const close = [101, 102, 99, 105, 110, 108, 111];
-const open =  [100, 101, 100, 103, 108, 109, 110];
-const high =  [102, 103, 101, 106, 112, 110, 112];
-const low =   [ 99, 100,  98, 102, 107, 106, 109];
-const volume =[ 10,  12,  11,  15,  17,  14,  18];
-const session=[  1,   1,   1,   2,   2,   2,   3];
+const candles = [
+  { open: 100, high: 102, low: 99, close: 101, volume: 10, time: 1 },
+  { open: 101, high: 103, low: 100, close: 102, volume: 12, time: 2 }
+];
 
-const s = sma(close, 3);
+const { high, low, close, volume } = toOHLCV(candles, 0);
+const s = sma(close, 14);
 const r = rsi(close, 14);
 const m = macd(close);
 const b = bbands(close, 20, 2);
 const a = atr(high, low, close, 14);
-const v = vwap(high, low, close, volume);
-const vs = vwapSession(high, low, close, volume, session);
-const rv = realizedVolatility(close, 30, 365);
-const fr = fundingRateCumulative([0.0001, -0.0002, 0.00005]);
-const vr = volatilityRegime(close, 30, 365);
-const ofi = orderflowImbalance(open, close, volume, 20);
-const o = obv(close, volume);
-const moneyFlow = mfi(high, low, close, volume, 14);
-const st = stoch(high, low, close, 14, 3);
-const dx = adx(high, low, close, 14);
-
-const s2 = ta.sma(close, 3);
+const vs = vwapSession(high, low, close, volume, [1, 1]);
 ```
 
-## API Conventions
+## Stateful API (streaming)
 
-- Input arrays must be the same length.
-- Outputs are aligned to input length.
-- `null` marks periods with insufficient data.
+```ts
+import { createRSI, createVWAPSession } from "ta-crypto";
+
+const rsi14 = createRSI(14);
+const nextRsi = rsi14.next(101.25);
+
+const vwap = createVWAPSession();
+const nextVwap = vwap.next({
+  high: 102,
+  low: 99,
+  close: 101,
+  volume: 10,
+  sessionId: "2026-02-10-asia"
+});
+```
+
+## Compatibility
+
+`ta-crypto` now ships golden tests (`test/fixtures/golden.json`) to lock behavior across releases.
+
+Classic indicators:
+
+| Indicator | Reference | Tolerance |
+| --- | --- | --- |
+| SMA, EMA, RSI | Golden baseline | 1e-10 |
+| MACD, BBANDS | Golden baseline | 1e-10 |
+| ATR, ADX | Golden baseline | 1e-10 |
+
+Crypto indicators:
+
+| Indicator | Reference | Tolerance |
+| --- | --- | --- |
+| VWAP Session | Golden baseline | 1e-10 |
+| Stateful VWAP Session parity | Batch VWAP Session | 1e-10 |
+
+Streaming parity:
+
+| Indicator | Reference | Tolerance |
+| --- | --- | --- |
+| Stateful RSI(14) | Batch RSI(14) | 1e-10 |
+
+External parity:
+
+| Indicator set | Reference libs | Tolerance |
+| --- | --- | --- |
+| SMA/EMA/RSI/MACD/BBANDS/ATR/ADX | TA-Lib, pandas-ta, technicalindicators | 1e-8 |
+
+Generate/review vectors:
+
+```bash
+npm run generate:golden
+npm run test:golden
+npm run generate:compat
+npm run test:compat:technicalindicators
+# python deps: pip install -r scripts/requirements-compat.txt
+npm run test:compat:python
+```
+
+Note:
+- CI uses Linux + Python 3.11 for full TA-Lib/pandas-ta coverage.
+- On Windows, `pandas-ta` may be unavailable depending on upstream wheels; the script reports explicit skip in that case.
+
+## Crypto Playbooks
+
+Session VWAP reset:
+- Provide one `sessionId` per candle.
+- VWAP resets exactly when `sessionId` changes.
+- Use exchange session boundaries (UTC day, funding window, or custom market session).
+
+Funding APR:
+- `fundingRateAPR(values, periodsPerYear)` annualizes periodic funding.
+- `periodsPerYear` presets:
+- `3/day` funding: `1095`
+- `1/hour` funding: `8760`
+- `1/8h` funding: `1095`
+
+Volatility regime:
+- `volatilityRegime(values, length, periodsPerYear, lowZ, highZ)` returns `-1`, `0`, `1`.
+- Default thresholds: `lowZ = -0.5`, `highZ = 0.5`.
+- Calibration approach: increase absolute thresholds for noisier low-timeframe pairs, reduce for smoother higher timeframes.
 
 ## Indicators
 
@@ -94,64 +136,80 @@ Trend:
 Crypto:
 - `vwapSession`, `fundingRateCumulative`, `fundingRateAPR`, `volatilityRegime`, `signedVolume`, `volumeDelta`, `orderflowImbalance`
 
-## Crypto-Specific Notes
+## Hero Features (crypto edge)
 
-Session VWAP:
-- Provide a `session` array with an id per candle. VWAP resets on each new session id.
+1. Session-aware VWAP (`vwapSession`, `createVWAPSession`)
+2. Funding analytics (`fundingRateCumulative`, `fundingRateAPR`)
+3. Volatility regime labeling (`volatilityRegime`)
+4. Orderflow proxies (`signedVolume`, `volumeDelta`, `orderflowImbalance`)
+5. Streaming/stateful indicators for low-allocation pipelines
 
-Funding rate:
-- `fundingRateCumulative` sums periodic rates over time.
-- `fundingRateAPR` annualizes a periodic rate using `periodsPerYear`.
+Limitations:
+- Orderflow proxies infer pressure from candle direction and volume; they are not a replacement for L2/L3 order book data.
+- Different libraries use different warmup conventions; comparisons use overlapping non-null windows.
 
-Volatility regimes:
-- `volatilityRegime` computes realized volatility and returns -1, 0, or 1 based on z-score thresholds.
+## Candle Contracts
 
-Orderflow proxies:
-- `signedVolume`, `volumeDelta`, and `orderflowImbalance` infer buy/sell pressure from candle direction.
+Use typed candles plus helpers:
+
+```ts
+import { pluckClose, toOHLCV } from "ta-crypto";
+
+const close = pluckClose(candles);
+const { open, high, low, close: c, volume } = toOHLCV(candles, 0);
+```
+
+Validation:
+- Multi-series indicators enforce equal lengths (`assertSameLength`).
+- Candle helpers validate finite numeric fields with index-specific error messages.
+
+## Module Imports
+
+```ts
+import { sma } from "ta-crypto/indicators";
+import { vwapSession } from "ta-crypto/crypto";
+import { toOHLCV } from "ta-crypto/candles";
+import { createRSI } from "ta-crypto/stateful";
+```
+
+## Bench (internal baseline, 10k candles)
+
+```text
+sma(14): 0.619 ms/run
+ema(14): 0.549 ms/run
+rsi(14): 0.647 ms/run
+macd:    2.887 ms/run
+bbands:  2.159 ms/run
+atr(14): 1.356 ms/run
+adx(14): 5.371 ms/run
+```
+
+Run locally:
+
+```bash
+npm run bench
+```
 
 ## Release
 
-Automated npm publish runs on tag push. Steps:
+Publications are gated by GitHub Actions:
+- `CI` runs build/tests + compatibility checks.
+- `Release` workflows run tests/compat again before publish.
 
-1. Ensure `NPM_TOKEN` is set in GitHub Actions secrets.
-   - For GitHub Packages, set `GITHUB_TOKEN` (already provided) or a PAT if needed.
-2. Update changelog (recommended):
+Recommended with GitHub CLI:
+
+```bash
+gh auth login
+gh workflow run ci.yml
+gh run list --workflow ci.yml --limit 1
+```
 
 ```bash
 npm run changelog
-```
-
-3. Bump version (optional):
-
-```bash
 npm run version:patch
-```
-
-4. Run:
-
-```bash
 npm run release
 ```
-
-Or do everything in one step:
-
-```bash
-npm run release:patch
-```
-
-GitHub Packages:
-- A separate workflow publishes `@TDamiao/ta-crypto` to GitHub Packages on the same tag.
-
-This creates and pushes a tag like `v0.1.1`, triggering the release workflow.
 
 ## License
 
 MIT
-
-## GitHub Packages
-
-Install from GitHub Packages:
-
-```bash
-npm i @TDamiao/ta-crypto
-```

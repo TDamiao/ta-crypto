@@ -13,6 +13,8 @@ export {
   volumeDelta,
   orderflowImbalance
 } from "./core/crypto.js";
+export { pluckOpen, pluckHigh, pluckLow, pluckClose, pluckVolume, toOHLCV } from "./candles.js";
+export { createRSI, createVWAPSession } from "./stateful.js";
 export * from "./types.js";
 
 import * as overlap from "./core/overlap.js";
@@ -22,6 +24,8 @@ import * as performance from "./core/performance.js";
 import * as volume from "./core/volume.js";
 import * as trend from "./core/trend.js";
 import * as crypto from "./core/crypto.js";
+import * as candles from "./candles.js";
+import * as stateful from "./stateful.js";
 
 export const ta = {
   ...overlap,
@@ -30,6 +34,8 @@ export const ta = {
   ...performance,
   ...volume,
   ...trend,
-  ...crypto
+  ...crypto,
+  ...candles,
+  ...stateful
 };
 

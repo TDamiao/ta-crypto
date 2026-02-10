@@ -1,0 +1,4 @@
+numpy>=1.26
+pandas>=2.2
+pandas-ta>=0.3.14b
+TA-Lib>=0.4.28

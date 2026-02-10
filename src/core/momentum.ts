@@ -1,4 +1,4 @@
-import { makeSeries } from "./math.js";
+import { assertSameLength, makeSeries } from "./math.js";
 import { ema } from "./overlap.js";
 
 export function macd(values: number[], fast = 12, slow = 26, signal = 9) {
@@ -54,10 +54,8 @@ export function stoch(
   kLength = 14,
   dLength = 3
 ) {
+  assertSameLength(high, low, close);
   const len = close.length;
-  if (high.length !== len || low.length !== len) {
-    throw new Error("All series must have the same length");
-  }
   const k = makeSeries(len);
   const d = makeSeries(len);
 
