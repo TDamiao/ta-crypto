@@ -13,8 +13,7 @@ function ensureClean() {
 }
 
 function getVersion() {
-  const pkg = JSON.parse(execSync("node -p \"require('./package.json').version\"").toString());
-  return pkg;
+  return execSync("node -p \"require('./package.json').version\"").toString().trim();
 }
 
 ensureClean();

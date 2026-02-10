@@ -1,6 +1,6 @@
-import { makeSeries } from "./math";
-import { rma } from "./overlap";
-import { trueRange } from "./volatility";
+import { makeSeries } from "./math.js";
+import { rma } from "./overlap.js";
+import { trueRange } from "./volatility.js";
 
 export function adx(high: number[], low: number[], close: number[], length = 14) {
   const len = close.length;
@@ -44,3 +44,4 @@ export function adx(high: number[], low: number[], close: number[], length = 14)
 
   return { adx, plusDI, minusDI };
 }
+

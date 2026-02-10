@@ -1,5 +1,5 @@
-﻿import { makeSeries } from "./math";
-import { ema } from "./overlap";
+import { makeSeries } from "./math.js";
+import { ema } from "./overlap.js";
 
 export function macd(values: number[], fast = 12, slow = 26, signal = 9) {
   const fastEma = ema(values, fast);
@@ -87,3 +87,4 @@ export function stoch(
 
   return { k, d };
 }
+

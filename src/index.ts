@@ -1,9 +1,9 @@
-﻿export { sma, ema, rma, hl2, hlc3, ohlc4, vwap, bbands } from "./core/overlap";
-export { rsi, macd, stoch } from "./core/momentum";
-export { trueRange, atr, natr } from "./core/volatility";
-export { logReturn, percentReturn, realizedVolatility } from "./core/performance";
-export { obv, mfi } from "./core/volume";
-export { adx } from "./core/trend";
+export { sma, ema, rma, hl2, hlc3, ohlc4, vwap, bbands } from "./core/overlap.js";
+export { rsi, macd, stoch } from "./core/momentum.js";
+export { trueRange, atr, natr } from "./core/volatility.js";
+export { logReturn, percentReturn, realizedVolatility } from "./core/performance.js";
+export { obv, mfi } from "./core/volume.js";
+export { adx } from "./core/trend.js";
 export {
   vwapSession,
   fundingRateCumulative,
@@ -12,16 +12,16 @@ export {
   signedVolume,
   volumeDelta,
   orderflowImbalance
-} from "./core/crypto";
-export * from "./types";
+} from "./core/crypto.js";
+export * from "./types.js";
 
-import * as overlap from "./core/overlap";
-import * as momentum from "./core/momentum";
-import * as volatility from "./core/volatility";
-import * as performance from "./core/performance";
-import * as volume from "./core/volume";
-import * as trend from "./core/trend";
-import * as crypto from "./core/crypto";
+import * as overlap from "./core/overlap.js";
+import * as momentum from "./core/momentum.js";
+import * as volatility from "./core/volatility.js";
+import * as performance from "./core/performance.js";
+import * as volume from "./core/volume.js";
+import * as trend from "./core/trend.js";
+import * as crypto from "./core/crypto.js";
 
 export const ta = {
   ...overlap,
@@ -32,3 +32,4 @@ export const ta = {
   ...trend,
   ...crypto
 };
+
