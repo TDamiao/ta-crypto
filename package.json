@@ -1,0 +1,50 @@
+﻿{
+  "name": "@tdamiao/pandas_btc",
+  "version": "0.1.0",
+  "description": "Technical analysis for crypto markets in Node.js",
+  "type": "module",
+  "license": "MIT",
+  "author": "",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "dist/index.d.ts",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "node -e \"console.log('no tests yet')\""
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.5"
+  },
+  "keywords": [
+    "crypto",
+    "bitcoin",
+    "technical-analysis",
+    "indicators",
+    "trading",
+    "ohlcv"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tdamiao/pandas_btc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tdamiao/pandas_btc/issues"
+  },
+  "homepage": "https://github.com/tdamiao/pandas_btc#readme"
+}
