@@ -14,7 +14,7 @@ function getLatestTag() {
 }
 
 function getVersion() {
-  return JSON.parse(run("node -p \"require('./package.json').version\""));
+  return run("node -p \"require('./package.json').version\"");
 }
 
 const tag = getLatestTag();

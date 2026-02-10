@@ -11,3 +11,15 @@
 - Trend: `adx`.
 - Crypto extras: `vwapSession`, `fundingRateCumulative`, `fundingRateAPR`, `volatilityRegime`, `signedVolume`, `volumeDelta`, `orderflowImbalance`.
 
+
+## 0.1.0 - 2026-02-10
+
+- Add changelog generator and release checks
+- Add release shortcut scripts
+- Add version bump scripts
+- Add release script and docs
+- Add npm publish workflow
+- Update repository links
+- Fix package name references
+- Rename package to pandas-btc
+- Initial release
