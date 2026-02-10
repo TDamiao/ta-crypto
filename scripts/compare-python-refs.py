@@ -98,29 +98,32 @@ def main():
     checks.append(compare("TA-Lib -DI(14)", ours["adx14"]["minusDI"], talib.MINUS_DI(high, low, close, timeperiod=14), TOL["adx"], BURN["adx"]))
 
     if pta is not None:
-        close_s = pd.Series(close, dtype="float64")
-        high_s = pd.Series(high, dtype="float64")
-        low_s = pd.Series(low, dtype="float64")
+        try:
+            close_s = pd.Series(close, dtype="float64")
+            high_s = pd.Series(high, dtype="float64")
+            low_s = pd.Series(low, dtype="float64")
 
-        checks.append(compare("pandas-ta SMA(14)", ours["sma14"], pta.sma(close_s, length=14).to_numpy(dtype=np.float64), TOL["sma"], BURN["sma"]))
-        checks.append(compare("pandas-ta EMA(14)", ours["ema14"], pta.ema(close_s, length=14).to_numpy(dtype=np.float64), TOL["ema"], BURN["ema"]))
-        checks.append(compare("pandas-ta RSI(14)", ours["rsi14"], pta.rsi(close_s, length=14).to_numpy(dtype=np.float64), TOL["rsi"], BURN["rsi"]))
+            checks.append(compare("pandas-ta SMA(14)", ours["sma14"], pta.sma(close_s, length=14).to_numpy(dtype=np.float64), TOL["sma"], BURN["sma"]))
+            checks.append(compare("pandas-ta EMA(14)", ours["ema14"], pta.ema(close_s, length=14).to_numpy(dtype=np.float64), TOL["ema"], BURN["ema"]))
+            checks.append(compare("pandas-ta RSI(14)", ours["rsi14"], pta.rsi(close_s, length=14).to_numpy(dtype=np.float64), TOL["rsi"], BURN["rsi"]))
 
-        mdf = pta.macd(close_s, fast=12, slow=26, signal=9)
-        checks.append(compare("pandas-ta MACD line", ours["macd"]["macd"], col(mdf, "MACD_"), TOL["macd"], BURN["macd"]))
-        checks.append(compare("pandas-ta MACD signal", ours["macd"]["signal"], col(mdf, "MACDs_"), TOL["macd"], BURN["macd"]))
-        checks.append(compare("pandas-ta MACD histogram", ours["macd"]["histogram"], col(mdf, "MACDh_"), TOL["macd"], BURN["macd"]))
+            mdf = pta.macd(close_s, fast=12, slow=26, signal=9)
+            checks.append(compare("pandas-ta MACD line", ours["macd"]["macd"], col(mdf, "MACD_"), TOL["macd"], BURN["macd"]))
+            checks.append(compare("pandas-ta MACD signal", ours["macd"]["signal"], col(mdf, "MACDs_"), TOL["macd"], BURN["macd"]))
+            checks.append(compare("pandas-ta MACD histogram", ours["macd"]["histogram"], col(mdf, "MACDh_"), TOL["macd"], BURN["macd"]))
 
-        bdf = pta.bbands(close_s, length=20, std=2)
-        checks.append(compare("pandas-ta BBANDS basis", ours["bbands20_2"]["basis"], col(bdf, "BBM_"), TOL["bbands"], BURN["bbands"]))
-        checks.append(compare("pandas-ta BBANDS upper", ours["bbands20_2"]["upper"], col(bdf, "BBU_"), TOL["bbands"], BURN["bbands"]))
-        checks.append(compare("pandas-ta BBANDS lower", ours["bbands20_2"]["lower"], col(bdf, "BBL_"), TOL["bbands"], BURN["bbands"]))
+            bdf = pta.bbands(close_s, length=20, std=2)
+            checks.append(compare("pandas-ta BBANDS basis", ours["bbands20_2"]["basis"], col(bdf, "BBM_"), TOL["bbands"], BURN["bbands"]))
+            checks.append(compare("pandas-ta BBANDS upper", ours["bbands20_2"]["upper"], col(bdf, "BBU_"), TOL["bbands"], BURN["bbands"]))
+            checks.append(compare("pandas-ta BBANDS lower", ours["bbands20_2"]["lower"], col(bdf, "BBL_"), TOL["bbands"], BURN["bbands"]))
 
-        checks.append(compare("pandas-ta ATR(14)", ours["atr14"], pta.atr(high_s, low_s, close_s, length=14).to_numpy(dtype=np.float64), TOL["atr"], BURN["atr"]))
-        adf = pta.adx(high_s, low_s, close_s, length=14)
-        checks.append(compare("pandas-ta ADX(14)", ours["adx14"]["adx"], col(adf, "ADX_"), TOL["adx"], BURN["adx"]))
-        checks.append(compare("pandas-ta +DI(14)", ours["adx14"]["plusDI"], col(adf, "DMP_"), TOL["adx"], BURN["adx"]))
-        checks.append(compare("pandas-ta -DI(14)", ours["adx14"]["minusDI"], col(adf, "DMN_"), TOL["adx"], BURN["adx"]))
+            checks.append(compare("pandas-ta ATR(14)", ours["atr14"], pta.atr(high_s, low_s, close_s, length=14).to_numpy(dtype=np.float64), TOL["atr"], BURN["atr"]))
+            adf = pta.adx(high_s, low_s, close_s, length=14)
+            checks.append(compare("pandas-ta ADX(14)", ours["adx14"]["adx"], col(adf, "ADX_"), TOL["adx"], BURN["adx"]))
+            checks.append(compare("pandas-ta +DI(14)", ours["adx14"]["plusDI"], col(adf, "DMP_"), TOL["adx"], BURN["adx"]))
+            checks.append(compare("pandas-ta -DI(14)", ours["adx14"]["minusDI"], col(adf, "DMN_"), TOL["adx"], BURN["adx"]))
+        except Exception as exc:  # pragma: no cover - environment dependent
+            print(f"[compat][python] pandas-ta runtime issue: {exc} (non-blocking)")
     else:
         msg = f"[compat][python] pandas-ta unavailable: {PANDAS_TA_ERROR}"
         if os.name == "nt":

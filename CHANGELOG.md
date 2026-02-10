@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2 - 2026-02-10
+
+- Make `pandas-ta` comparison resilient to environment-specific runtime issues (non-blocking warning).
+- Keep strict compatibility gates with `TA-Lib` and `technicalindicators` before publish.
+
 ## 0.2.1 - 2026-02-10
 
 - Fix release compatibility environment to Python 3.12 in CI and publish workflows.
