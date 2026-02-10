@@ -1,4 +1,4 @@
-﻿import { makeSeries, stdev } from "./math";
+import { makeSeries, stdev } from "./math.js";
 
 export function logReturn(values: number[], cumulative = false): Array<number | null> {
   const out = makeSeries(values.length);
@@ -39,3 +39,4 @@ export function realizedVolatility(values: number[], length = 30, periodsPerYear
   }
   return out;
 }
+

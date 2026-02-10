@@ -1,6 +1,6 @@
-import { assertSameLength, makeSeries, mean, stdev } from "./math";
-import { hlc3 } from "./overlap";
-import { realizedVolatility } from "./performance";
+import { assertSameLength, makeSeries, mean, stdev } from "./math.js";
+import { hlc3 } from "./overlap.js";
+import { realizedVolatility } from "./performance.js";
 
 export function vwapSession(
   high: number[],
@@ -126,3 +126,4 @@ export function orderflowImbalance(
   }
   return out;
 }
+

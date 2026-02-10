@@ -1,4 +1,4 @@
-import { makeSeries } from "./math";
+import { makeSeries } from "./math.js";
 
 export function obv(close: number[], volume: number[]): Array<number | null> {
   if (close.length !== volume.length) {
@@ -57,3 +57,4 @@ export function mfi(
 
   return out;
 }
+
