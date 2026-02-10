@@ -19,6 +19,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Check if version already exists on npm
+        id: npm_check
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "ta-crypto@$VERSION" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "ta-crypto@$VERSION already exists on npm. Skipping publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
       - run: npm publish --access public
+        if: steps.npm_check.outputs.exists == 'false'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
