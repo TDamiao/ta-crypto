@@ -1,4 +1,4 @@
-﻿import { assertSameLength, isNum, makeSeries, mean, stdev } from "./math";
+import { assertSameLength, isNum, makeSeries, mean, stdev } from "./math.js";
 
 export function sma(values: number[], length = 14): Array<number | null> {
   const out = makeSeries(values.length);
@@ -107,3 +107,4 @@ export function bbands(values: number[], length = 20, std = 2) {
   }
   return { basis, upper, lower };
 }
+

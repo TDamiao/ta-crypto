@@ -1,5 +1,5 @@
-﻿import { assertSameLength, makeSeries } from "./math";
-import { rma } from "./overlap";
+import { assertSameLength, makeSeries } from "./math.js";
+import { rma } from "./overlap.js";
 
 export function trueRange(high: number[], low: number[], close: number[]): Array<number | null> {
   assertSameLength(high, low, close);
@@ -33,3 +33,4 @@ export function natr(high: number[], low: number[], close: number[], length = 14
   }
   return out;
 }
+
