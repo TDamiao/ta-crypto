@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3 - 2026-02-10
+
+- Keep `TA-Lib` and `technicalindicators` as strict publish gates.
+- Treat `pandas-ta` comparison mismatches as non-blocking warnings to avoid environment-specific regressions in release automation.
+
 ## 0.2.2 - 2026-02-10
 
 - Make `pandas-ta` comparison resilient to environment-specific runtime issues (non-blocking warning).
