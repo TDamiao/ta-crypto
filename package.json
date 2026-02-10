@@ -1,5 +1,5 @@
 ﻿{
-  "name": "@tdamiao/pandas_btc",
+  "name": "pandas-btc",
   "version": "0.1.0",
   "description": "Technical analysis for crypto markets in Node.js",
   "type": "module",
@@ -18,9 +18,6 @@
     "README.md",
     "LICENSE"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rimraf dist",
