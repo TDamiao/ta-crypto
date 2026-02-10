@@ -114,7 +114,7 @@ Orderflow proxies:
 Automated npm publish runs on tag push. Steps:
 
 1. Ensure `NPM_TOKEN` is set in GitHub Actions secrets.
-2. Bump version:
+2. Bump version (optional):
 
 ```bash
 npm run version:patch
@@ -124,6 +124,12 @@ npm run version:patch
 
 ```bash
 npm run release
+```
+
+Or do everything in one step:
+
+```bash
+npm run release:patch
 ```
 
 This creates and pushes a tag like `v0.1.1`, triggering the release workflow.
