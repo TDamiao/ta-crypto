@@ -28,3 +28,8 @@
 
 - Add GitHub Packages release workflow
 - Normalize repository URL
+
+## 0.1.2 - 2026-02-10
+
+- Fix GitHub Packages publish workflow
+- Release v0.1.2
