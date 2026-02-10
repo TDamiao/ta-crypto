@@ -23,3 +23,8 @@
 - Fix package name references
 - Rename package to pandas-btc
 - Initial release
+
+## 0.1.1 - 2026-02-10
+
+- Add GitHub Packages release workflow
+- Normalize repository URL
