@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -17,10 +18,12 @@ jobs:
         with:
           node-version: 20
           registry-url: "https://npm.pkg.github.com"
+          scope: "@TDamiao"
       - run: npm ci
       - run: npm run build
       - name: Set scoped name for GitHub Packages
         run: node -e "const fs=require('fs');const p='package.json';const j=JSON.parse(fs.readFileSync(p));j.name='@TDamiao/ta-crypto';fs.writeFileSync(p,JSON.stringify(j,null,2));"
-      - run: npm publish
+      - name: Publish to GitHub Packages
+        run: npm publish --registry https://npm.pkg.github.com
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
