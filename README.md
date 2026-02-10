@@ -148,3 +148,10 @@ This creates and pushes a tag like `v0.1.1`, triggering the release workflow.
 
 MIT
 
+## GitHub Packages
+
+Install from GitHub Packages:
+
+```bash
+npm i @TDamiao/ta-crypto
+```
