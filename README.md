@@ -48,6 +48,15 @@ const nextVwap = vwap.next({
 });
 ```
 
+## Examples
+
+Real-world entry points live in `examples/`:
+- `examples/rsi-strategy.ts`
+- `examples/vwap-session.ts`
+- `examples/funding-arbitrage.ts`
+
+If you're using ta-crypto in production or experiments, feel free to add your example here.
+
 ## Compatibility
 
 `ta-crypto` now ships golden tests (`test/fixtures/golden.json`) to lock behavior across releases.
@@ -190,6 +199,16 @@ Run locally:
 ```bash
 npm run bench
 ```
+
+## Contributing
+
+ta-crypto is open to contributors.
+If you use it, improve it.
+If you miss something, build it.
+If you're learning, this is a great codebase to practice financial math.
+
+Start with `CONTRIBUTING.md` and `ROADMAP.md`.
+If you want to contribute but don't know where to start, pick an indicator from the roadmap and add tests comparing with TA-Lib.
 
 ## Release
 

@@ -1,0 +1,19 @@
+- name: good first issue
+  color: "7057ff"
+  description: Good entry-level tasks with clear acceptance criteria.
+
+- name: help wanted
+  color: "008672"
+  description: Extra help is welcome from the community.
+
+- name: documentation
+  color: "0e8a16"
+  description: Improvements to docs, onboarding, and examples.
+
+- name: performance
+  color: "fbca04"
+  description: Benchmarks, profiling, and runtime optimization work.
+
+- name: crypto-specific
+  color: "1d76db"
+  description: Crypto-market specific indicators, utilities, and validations.
