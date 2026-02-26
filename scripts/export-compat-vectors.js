@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { sma, ema, rsi, macd, bbands, atr, adx } from "../dist/index.js";
 
@@ -40,7 +40,8 @@ const ours = {
 const payload = {
   meta: {
     length: input.close.length,
-    generatedAt: new Date().toISOString()
+    generatedAt: new Date().toISOString(),
+    compatPolicy: JSON.parse(readFileSync(resolve(process.cwd(), "scripts/compat-policy.json"), "utf8"))
   },
   input,
   ours

@@ -3,29 +3,18 @@ import { resolve } from "node:path";
 import { SMA, EMA, RSI, MACD, BollingerBands, ATR, ADX } from "technicalindicators";
 
 const compat = JSON.parse(readFileSync(resolve(process.cwd(), "test/fixtures/compat-current.json"), "utf8"));
+const policy = JSON.parse(readFileSync(resolve(process.cwd(), "scripts/compat-policy.json"), "utf8"));
 const { close, high, low } = compat.input;
 const ours = compat.ours;
 const len = close.length;
 
-const toleranceByIndicator = {
-  sma: 1e-10,
-  ema: 1e-10,
-  rsi: 5e-2,
-  macd: 2e-2,
-  bbands: 1e-10,
-  atr: 1.5e-1,
-  adx: 1.5
-};
+const toleranceByIndicator = Object.fromEntries(
+  Object.entries(policy.indicators).map(([key, value]) => [key, value.tolerance])
+);
 
-const burnInByIndicator = {
-  sma: 14,
-  ema: 14,
-  rsi: 28,
-  macd: 80,
-  bbands: 20,
-  atr: 56,
-  adx: 90
-};
+const burnInByIndicator = Object.fromEntries(
+  Object.entries(policy.indicators).map(([key, value]) => [key, value.burnIn])
+);
 
 let failures = 0;
 
