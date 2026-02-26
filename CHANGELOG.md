@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 - 2026-02-26
+
+- Standardize public typed input contracts for indicators, including candle aliases (`o/h/l/c/v/t`) and OHLCV object variants.
+- Add a public API normalization layer so main indicator APIs accept both primitive arrays and candle-based inputs consistently.
+- Expand contract tests and README typing documentation for discoverable developer UX.
+- Add streaming/stateful `createSMA(period)` and `createEMA(period)` with deterministic warmup/reset semantics and parity coverage.
+- Extend golden/stateful tests to cover SMA/EMA/RSI parity and reset behavior.
+- Centralize compatibility tolerance and burn-in policy in `scripts/compat-policy.json`.
+- Make JS and Python compatibility comparators consume the same policy and embed policy snapshot in exported compat vectors metadata.
+- Publish release-ready compatibility policy table and warmup/alignment rules in README.
+
 ## 0.2.3 - 2026-02-10
 
 - Keep `TA-Lib` and `technicalindicators` as strict publish gates.
