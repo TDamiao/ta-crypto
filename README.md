@@ -158,20 +158,49 @@ Limitations:
 - Orderflow proxies infer pressure from candle direction and volume; they are not a replacement for L2/L3 order book data.
 - Different libraries use different warmup conventions; comparisons use overlapping non-null windows.
 
-## Candle Contracts
+## Typing and Inputs
 
-Use typed candles plus helpers:
+`ta-crypto` public APIs accept two input styles:
+- Primitive arrays (`number[]`) for low-level control.
+- Candle objects with long keys (`open/high/low/close/volume/time`) or aliases (`o/h/l/c/v/t`).
+
+Single-series APIs (for example `sma`, `ema`, `rsi`, `macd`, `bbands`) accept:
+
+```ts
+import { rsi } from "ta-crypto";
+
+const close = [101, 102, 103, 104];
+const candles = [{ o: 100, h: 102, l: 99, c: 101, v: 10, t: 1 }];
+
+rsi(close, 14);
+rsi(candles, 14); // uses candle close/c
+```
+
+OHLC/OHLCV APIs (for example `vwap`, `stoch`, `atr`, `natr`, `mfi`, `adx`) accept:
+
+```ts
+import { atr, vwap } from "ta-crypto";
+
+atr([102, 103], [99, 100], [101, 102], 14);
+atr([{ open: 100, high: 102, low: 99, close: 101, volume: 10 }], 14);
+
+vwap([102, 103], [99, 100], [101, 102], [10, 12]);
+vwap([{ o: 100, h: 102, l: 99, c: 101, v: 10 }]);
+```
+
+Helpers:
 
 ```ts
 import { pluckClose, toOHLCV } from "ta-crypto";
 
 const close = pluckClose(candles);
-const { open, high, low, close: c, volume } = toOHLCV(candles, 0);
+const ohlcv = toOHLCV(candles, 0);
+const ohlcvFromArrays = toOHLCV({ o: [1, 2], h: [3, 4], l: [0, 1], c: [2, 3], v: [5, 6] });
 ```
 
 Validation:
-- Multi-series indicators enforce equal lengths (`assertSameLength`).
-- Candle helpers validate finite numeric fields with index-specific error messages.
+- Multi-series APIs enforce equal lengths.
+- Numeric inputs are validated as finite numbers with index-aware messages when possible.
 
 ## Module Imports
 
