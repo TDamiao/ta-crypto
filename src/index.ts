@@ -28,7 +28,7 @@ export {
   orderflowImbalance
 } from "./api.js";
 export { pluckOpen, pluckHigh, pluckLow, pluckClose, pluckVolume, toOHLCV } from "./candles.js";
-export { createRSI, createVWAPSession } from "./stateful.js";
+export { createSMA, createEMA, createRSI, createVWAPSession } from "./stateful.js";
 export * from "./types.js";
 
 import * as api from "./api.js";

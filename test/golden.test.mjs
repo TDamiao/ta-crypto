@@ -10,6 +10,8 @@ import {
   bbands,
   atr,
   adx,
+  createSMA,
+  createEMA,
   vwapSession,
   createRSI,
   createVWAPSession
@@ -55,11 +57,28 @@ test("golden parity: overlap/momentum/trend/volatility/crypto", () => {
   approxSeries(actualADX.minusDI, golden.adx14.minusDI);
 });
 
-test("stateful parity: RSI and VWAPSession", () => {
+test("stateful parity: SMA/EMA/RSI and VWAPSession", () => {
+  const smaState = createSMA(14);
+  const actualStatefulSMA = close.map(v => smaState.next(v));
+  approxSeries(actualStatefulSMA, sma(close, 14));
+  smaState.reset();
+  const actualStatefulSMAAfterReset = close.map(v => smaState.next(v));
+  approxSeries(actualStatefulSMAAfterReset, sma(close, 14));
+
+  const emaState = createEMA(14);
+  const actualStatefulEMA = close.map(v => emaState.next(v));
+  approxSeries(actualStatefulEMA, ema(close, 14));
+  emaState.reset();
+  const actualStatefulEMAAfterReset = close.map(v => emaState.next(v));
+  approxSeries(actualStatefulEMAAfterReset, ema(close, 14));
+
   const rsiState = createRSI(14);
   const actualStatefulRSI = close.map(v => rsiState.next(v));
   approxSeries(actualStatefulRSI, golden.statefulRSI14);
   approxSeries(actualStatefulRSI, rsi(close, 14));
+  rsiState.reset();
+  const actualStatefulRSIAfterReset = close.map(v => rsiState.next(v));
+  approxSeries(actualStatefulRSIAfterReset, rsi(close, 14));
 
   const vwapState = createVWAPSession();
   const actualStatefulVWAP = high.map((_, i) =>
@@ -74,4 +93,25 @@ test("stateful parity: RSI and VWAPSession", () => {
 
   approxSeries(actualStatefulVWAP, golden.statefulVWAPSession);
   approxSeries(actualStatefulVWAP, vwapSession(high, low, close, volume, session));
+  vwapState.reset();
+  const actualStatefulVWAPAfterReset = high.map((_, i) =>
+    vwapState.next({
+      high: high[i],
+      low: low[i],
+      close: close[i],
+      volume: volume[i],
+      sessionId: session[i]
+    })
+  );
+  approxSeries(actualStatefulVWAPAfterReset, vwapSession(high, low, close, volume, session));
+});
+
+test("stateful API validates invalid inputs", () => {
+  const smaState = createSMA(14);
+  const emaState = createEMA(14);
+  const rsiState = createRSI(14);
+
+  assert.throws(() => smaState.next(Number.NaN), /value must be a finite number/);
+  assert.throws(() => emaState.next(Number.POSITIVE_INFINITY), /value must be a finite number/);
+  assert.throws(() => rsiState.next(Number.NaN), /price must be a finite number/);
 });

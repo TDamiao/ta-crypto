@@ -3,6 +3,75 @@ export type StatefulIndicator<TIn, TOut> = {
   reset(): void;
 };
 
+export function createSMA(period = 14): StatefulIndicator<number, number | null> {
+  if (period <= 0) {
+    throw new Error("period must be > 0");
+  }
+
+  const window: number[] = [];
+  let sum = 0;
+
+  return {
+    next(value: number): number | null {
+      if (!Number.isFinite(value)) {
+        throw new Error("value must be a finite number");
+      }
+
+      window.push(value);
+      sum += value;
+
+      if (window.length < period) {
+        return null;
+      }
+      if (window.length > period) {
+        sum -= window.shift() as number;
+      }
+      return sum / period;
+    },
+    reset(): void {
+      window.length = 0;
+      sum = 0;
+    }
+  };
+}
+
+export function createEMA(period = 14): StatefulIndicator<number, number | null> {
+  if (period <= 0) {
+    throw new Error("period must be > 0");
+  }
+
+  const k = 2 / (period + 1);
+  let seedSum = 0;
+  let seedCount = 0;
+  let prev: number | null = null;
+
+  return {
+    next(value: number): number | null {
+      if (!Number.isFinite(value)) {
+        throw new Error("value must be a finite number");
+      }
+
+      if (prev === null) {
+        seedSum += value;
+        seedCount += 1;
+        if (seedCount < period) {
+          return null;
+        }
+        prev = seedSum / period;
+        return prev;
+      }
+
+      prev = (value - prev) * k + prev;
+      return prev;
+    },
+    reset(): void {
+      seedSum = 0;
+      seedCount = 0;
+      prev = null;
+    }
+  };
+}
+
 export function createRSI(period = 14): StatefulIndicator<number, number | null> {
   if (period <= 0) {
     throw new Error("period must be > 0");
