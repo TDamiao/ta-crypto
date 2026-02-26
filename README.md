@@ -106,9 +106,23 @@ Streaming parity:
 
 External parity:
 
-| Indicator set | Reference libs | Tolerance |
-| --- | --- | --- |
-| SMA/EMA/RSI/MACD/BBANDS/ATR/ADX | TA-Lib, pandas-ta, technicalindicators | 1e-8 |
+Policy source: `scripts/compat-policy.json`
+
+| Indicator | Burn-in | Tolerance | Blocking refs | Non-blocking refs |
+| --- | --- | --- | --- | --- |
+| SMA(14) | 14 | 1e-10 | TA-Lib, technicalindicators | pandas-ta |
+| EMA(14) | 14 | 1e-10 | TA-Lib, technicalindicators | pandas-ta |
+| RSI(14) | 28 | 5e-2 | TA-Lib, technicalindicators | pandas-ta |
+| MACD(12,26,9) | 80 | 2e-2 | TA-Lib, technicalindicators | pandas-ta |
+| BBANDS(20,2) | 20 | 1e-10 | TA-Lib, technicalindicators | pandas-ta |
+| ATR(14) | 56 | 1.5e-1 | TA-Lib, technicalindicators | pandas-ta |
+| ADX/+DI/-DI(14) | 90 | 1.5 | TA-Lib, technicalindicators | pandas-ta |
+
+Warmup and alignment rules:
+- References are left-padded to full series length before comparison.
+- Comparison starts at indicator-specific burn-in and uses only overlapping non-null points.
+- `TA-Lib` and `technicalindicators` are release-blocking checks in CI.
+- `pandas-ta` is telemetry-only (warns when divergent or unavailable by environment).
 
 Generate/review vectors:
 

@@ -5,7 +5,12 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import talib
+try:
+    import talib
+    TALIB_ERROR = None
+except Exception as exc:  # pragma: no cover - environment dependent
+    talib = None
+    TALIB_ERROR = exc
 
 try:
     import pandas_ta as pta
@@ -16,26 +21,10 @@ except Exception as exc:  # pragma: no cover - environment dependent
 
 ROOT = Path(__file__).resolve().parents[1]
 COMPAT_PATH = ROOT / "test" / "fixtures" / "compat-current.json"
-
-TOL = {
-    "sma": 1e-10,
-    "ema": 1e-10,
-    "rsi": 5e-2,
-    "macd": 2e-2,
-    "bbands": 1e-10,
-    "atr": 1.5e-1,
-    "adx": 1.5,
-}
-
-BURN = {
-    "sma": 14,
-    "ema": 14,
-    "rsi": 28,
-    "macd": 80,
-    "bbands": 20,
-    "atr": 56,
-    "adx": 90,
-}
+POLICY_PATH = ROOT / "scripts" / "compat-policy.json"
+POLICY = json.loads(POLICY_PATH.read_text(encoding="utf-8"))
+TOL = {k: float(v["tolerance"]) for k, v in POLICY["indicators"].items()}
+BURN = {k: int(v["burnIn"]) for k, v in POLICY["indicators"].items()}
 
 
 def as_arr(values):
@@ -69,6 +58,11 @@ def col(df, prefix):
 
 
 def main():
+    if talib is None:
+        print(f"[compat][python] TA-Lib unavailable: {TALIB_ERROR}")
+        print("[compat][python] install requirements: pip install -r scripts/requirements-compat.txt")
+        sys.exit(1)
+
     data = json.loads(COMPAT_PATH.read_text(encoding="utf-8"))
     inp = data["input"]
     ours = data["ours"]

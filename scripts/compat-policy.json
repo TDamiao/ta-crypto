@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "indicators": {
+    "sma": { "tolerance": 1e-10, "burnIn": 14 },
+    "ema": { "tolerance": 1e-10, "burnIn": 14 },
+    "rsi": { "tolerance": 5e-2, "burnIn": 28 },
+    "macd": { "tolerance": 2e-2, "burnIn": 80 },
+    "bbands": { "tolerance": 1e-10, "burnIn": 20 },
+    "atr": { "tolerance": 1.5e-1, "burnIn": 56 },
+    "adx": { "tolerance": 1.5, "burnIn": 90 }
+  },
+  "rules": {
+    "alignment": "left-pad reference series with null/NaN to full length and compare only overlapping non-null points",
+    "blockingReferences": ["TA-Lib", "technicalindicators"],
+    "nonBlockingReferences": ["pandas-ta"]
+  }
+}
