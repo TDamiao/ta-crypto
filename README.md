@@ -33,9 +33,13 @@ const vs = vwapSession(high, low, close, volume, [1, 1]);
 ## Stateful API (streaming)
 
 ```ts
-import { createRSI, createVWAPSession } from "ta-crypto";
+import { createSMA, createEMA, createRSI, createVWAPSession } from "ta-crypto";
 
+const sma14 = createSMA(14);
+const ema14 = createEMA(14);
 const rsi14 = createRSI(14);
+const nextSma = sma14.next(101.25);
+const nextEma = ema14.next(101.25);
 const nextRsi = rsi14.next(101.25);
 
 const vwap = createVWAPSession();
@@ -45,6 +49,24 @@ const nextVwap = vwap.next({
   close: 101,
   volume: 10,
   sessionId: "2026-02-10-asia"
+});
+```
+
+Websocket-like streaming loop:
+
+```ts
+import { createEMA, createRSI } from "ta-crypto";
+
+const ema21 = createEMA(21);
+const rsi14 = createRSI(14);
+
+ws.on("message", (tick) => {
+  const price = Number(tick.last);
+  const e = ema21.next(price);
+  const r = rsi14.next(price);
+  if (e !== null && r !== null) {
+    // strategy signal path
+  }
 });
 ```
 
@@ -208,7 +230,7 @@ Validation:
 import { sma } from "ta-crypto/indicators";
 import { vwapSession } from "ta-crypto/crypto";
 import { toOHLCV } from "ta-crypto/candles";
-import { createRSI } from "ta-crypto/stateful";
+import { createSMA, createEMA, createRSI } from "ta-crypto/stateful";
 ```
 
 ## Bench (internal baseline, 10k candles)
