@@ -2,6 +2,15 @@
 
 Thanks for contributing.
 
+## Current release line
+
+`v0.3.0` is the current stable release.
+Contribution priority is now post-v0.3 hardening and expansion:
+1. More indicators and crypto-specific workflows.
+2. Compatibility/reproducibility depth.
+3. Benchmark realism and performance tuning.
+4. Real-world examples and docs quality.
+
 ## Highest impact first
 
 If you want to contribute but don't know where to start, pick an indicator from the roadmap and add tests comparing with TA-Lib.
