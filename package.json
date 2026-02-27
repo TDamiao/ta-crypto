@@ -54,7 +54,12 @@
     "test:golden": "npm run build && node --test test/golden.test.mjs",
     "test:compat:technicalindicators": "npm run generate:compat && node ./scripts/compare-technicalindicators.js",
     "test:compat:python": "npm run generate:compat && python ./scripts/compare-python-refs.py",
-    "test:compat": "npm run test:compat:technicalindicators && npm run test:compat:python"
+    "test:compat": "npm run test:compat:technicalindicators && npm run test:compat:python",
+    "example:rsi": "npm run build && node ./examples/rsi-strategy.mjs",
+    "example:vwap": "npm run build && node ./examples/vwap-session.mjs",
+    "example:funding": "npm run build && node ./examples/funding-arbitrage.mjs",
+    "example:rsi:compat": "npm run build && node ./examples/rsi-technicalindicators-check.mjs",
+    "example:all": "npm run example:rsi && npm run example:vwap && npm run example:funding && npm run example:rsi:compat"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",
