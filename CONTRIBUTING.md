@@ -43,6 +43,7 @@ npm run test:compat:technicalindicators
 # python deps: pip install -r scripts/requirements-compat.txt
 npm run test:compat:python
 npm run bench
+npm run bench:rolling
 ```
 
 ## Code standards
@@ -66,6 +67,7 @@ npm run bench
 
 1. Extend `scripts/bench.js` with realistic input sizes.
 2. Include before/after numbers and methodology in the PR description.
+3. For rolling-window changes, preserve the warmup and alignment invariants in `docs/rolling-engine.md`.
 
 ### Examples
 

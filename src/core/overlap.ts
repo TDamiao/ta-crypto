@@ -1,12 +1,9 @@
-import { assertSameLength, isNum, makeSeries, mean, stdev } from "./math.js";
+import { assertSameLength, isNum, makeSeries, mean } from "./math.js";
+import { rollingMean, rollingMeanStdDev } from "./rolling.js";
 
 export function sma(values: number[], length = 14): Array<number | null> {
-  const out = makeSeries(values.length);
-  if (length <= 0) return out;
-  for (let i = length - 1; i < values.length; i++) {
-    out[i] = mean(values, i - length + 1, i);
-  }
-  return out;
+  if (length <= 0) return makeSeries(values.length);
+  return rollingMean(values, length);
 }
 
 export function ema(values: number[], length = 14): Array<number | null> {
@@ -97,14 +94,20 @@ export function vwap(
 }
 
 export function bbands(values: number[], length = 20, std = 2) {
-  const basis = sma(values, length);
-  const upper = makeSeries(values.length);
+  if (length <= 0) {
+    return {
+      basis: makeSeries(values.length),
+      upper: makeSeries(values.length),
+      lower: makeSeries(values.length)
+    };
+  }
+  const { mean: basis, stdDev: upper } = rollingMeanStdDev(values, length);
   const lower = makeSeries(values.length);
-  for (let i = length - 1; i < values.length; i++) {
-    const s = stdev(values, i - length + 1, i);
+  for (let i = 0; i < values.length; i++) {
+    const s = upper[i];
+    if (s === null) continue;
     upper[i] = (basis[i] as number) + std * s;
     lower[i] = (basis[i] as number) - std * s;
   }
   return { basis, upper, lower };
 }
-
