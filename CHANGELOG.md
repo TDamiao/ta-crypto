@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2 - 2026-07-12
+
+- Add runnable RSI, session VWAP, funding analytics, and external-reference compatibility examples.
+- Add a trust and verification page covering CI, releases, compatibility gates, and independent package checks.
+- Document example commands and expected outputs, with an aggregate smoke-test script.
+
 ## 0.3.1 - 2026-07-12
 
 - Add an internal shared rolling-window engine for sum, mean, population standard deviation, minimum, and maximum.

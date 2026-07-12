@@ -4,7 +4,7 @@ Thanks for contributing.
 
 ## Current release line
 
-`v0.3.1` is the current stable release.
+`v0.3.2` is the current stable release.
 Contribution priority is now post-v0.3 hardening and expansion:
 1. More indicators and crypto-specific workflows.
 2. Compatibility/reproducibility depth.
