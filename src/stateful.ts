@@ -1,3 +1,5 @@
+import { RollingMean } from "./core/rolling.js";
+
 export type StatefulIndicator<TIn, TOut> = {
   next(value: TIn): TOut;
   reset(): void;
@@ -8,8 +10,7 @@ export function createSMA(period = 14): StatefulIndicator<number, number | null>
     throw new Error("period must be > 0");
   }
 
-  const window: number[] = [];
-  let sum = 0;
+  const rolling = new RollingMean(period);
 
   return {
     next(value: number): number | null {
@@ -17,20 +18,10 @@ export function createSMA(period = 14): StatefulIndicator<number, number | null>
         throw new Error("value must be a finite number");
       }
 
-      window.push(value);
-      sum += value;
-
-      if (window.length < period) {
-        return null;
-      }
-      if (window.length > period) {
-        sum -= window.shift() as number;
-      }
-      return sum / period;
+      return rolling.next(value);
     },
     reset(): void {
-      window.length = 0;
-      sum = 0;
+      rolling.reset();
     }
   };
 }

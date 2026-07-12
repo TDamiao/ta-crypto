@@ -50,6 +50,7 @@
     "generate:golden": "npm run build && node ./scripts/generate-golden.js",
     "generate:compat": "npm run build && node ./scripts/export-compat-vectors.js",
     "bench": "npm run build && node ./scripts/bench.js",
+    "bench:rolling": "npm run build && node ./scripts/bench-rolling.js",
     "test": "npm run build && node --test test/*.test.mjs",
     "test:golden": "npm run build && node --test test/golden.test.mjs",
     "test:compat:technicalindicators": "npm run generate:compat && node ./scripts/compare-technicalindicators.js",
