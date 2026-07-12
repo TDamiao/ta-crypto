@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 - 2026-07-12
+
+- Add an internal shared rolling-window engine for sum, mean, population standard deviation, minimum, and maximum.
+- Refactor batch SMA, BBANDS, and stateful SMA to share deterministic warmup, alignment, and reset semantics.
+- Improve fixed-window performance in deterministic 10k/100k benchmarks while preserving golden and external-reference compatibility.
+- Document rolling invariants and add focused regression and benchmark coverage.
+
 ## 0.3.0 - 2026-02-26
 
 - Standardize public typed input contracts for indicators, including candle aliases (`o/h/l/c/v/t`) and OHLCV object variants.
