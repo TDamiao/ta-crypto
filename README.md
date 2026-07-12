@@ -73,11 +73,20 @@ ws.on("message", (tick) => {
 ## Examples
 
 Real-world entry points live in `examples/`:
-- `examples/rsi-strategy.ts`
-- `examples/vwap-session.ts`
-- `examples/funding-arbitrage.ts`
+- `examples/rsi-strategy.mjs`
+- `examples/vwap-session.mjs`
+- `examples/funding-arbitrage.mjs`
+- `examples/rsi-technicalindicators-check.mjs` (external reference check)
 
 If you're using ta-crypto in production or experiments, feel free to add your example here.
+
+Run examples:
+
+```bash
+npm run example:all
+```
+
+Detailed commands and expected outputs: `examples/README.md`
 
 ## Compatibility
 
@@ -294,6 +303,10 @@ npm run changelog
 npm run version:patch
 npm run release
 ```
+
+## Trust and Verification
+
+For release integrity, compatibility policy, and verification workflow, see `docs/trust.md`.
 
 ## License
 
