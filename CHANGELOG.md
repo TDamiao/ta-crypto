@@ -6,6 +6,13 @@
 - Add focused references for inputs, indicators, crypto utilities, stateful APIs, and compatibility.
 - Synchronize stable-version references and document current v0.3.2 semantics, warmup behavior, limitations, and planned v0.4 corrections.
 
+## [0.3.3](https://github.com/TDamiao/ta-crypto/compare/v0.3.2...v0.3.3) (2026-07-21)
+
+
+### Bug Fixes
+
+* prepare v0.3.3 release ([2b44806](https://github.com/TDamiao/ta-crypto/commit/2b448064da14e33f1485b5f91bf2ee73b434e70d))
+
 ## 0.3.2 - 2026-07-12
 
 - Add runnable RSI, session VWAP, funding analytics, and external-reference compatibility examples.
