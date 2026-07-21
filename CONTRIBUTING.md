@@ -5,22 +5,23 @@ Thanks for contributing.
 ## Current release line
 
 `v0.3.2` is the current stable release.
-Contribution priority is now post-v0.3 hardening and expansion:
-1. More indicators and crypto-specific workflows.
-2. Compatibility/reproducibility depth.
-3. Benchmark realism and performance tuning.
-4. Real-world examples and docs quality.
+The v0.4 contribution priority is core hardening:
+1. Financial semantics and numeric validation.
+2. Compatibility and reproducibility depth.
+3. Rolling performance with deterministic parity benchmarks.
+4. Stateful batch parity and reset coverage.
+5. Release, supply-chain, and documentation integrity.
 
 ## Highest impact first
 
-If you want to contribute but don't know where to start, pick an indicator from the roadmap and add tests comparing with TA-Lib.
+If you want to contribute but do not know where to start, select a scoped issue from the v0.4 gate in GitHub issue #21.
 
 Prioritized contribution types:
-1. New indicators (batch or stateful/streaming).
-2. Golden and compatibility tests (TA-Lib, pandas-ta, technicalindicators).
-3. Benchmarks and performance improvements.
-4. Real-world examples and playbooks.
-5. Documentation clarity and API ergonomics.
+1. Correctness and edge-case tests.
+2. External compatibility evidence (TA-Lib, pandas-ta, technicalindicators).
+3. Benchmarks and rolling performance improvements.
+4. Stateful/streaming parity for approved indicators.
+5. Documentation that matches current exports and behavior.
 
 ## Run locally
 
@@ -76,8 +77,13 @@ npm run bench:rolling
 
 ### Docs
 
-1. Improve `README.md`, comments, and usage snippets.
-2. Keep docs aligned with current exports and behavior.
+1. Keep `README.md` as a concise navigation and capability index.
+2. Put detailed contracts in focused pages under `docs/`.
+3. Document only APIs exported by the current package.
+4. Include input/output shape, warmup, null behavior, limitations, and a runnable example.
+5. Link technical claims to code, tests, compatibility policy, or release evidence.
+6. Avoid generic promotional copy and unsupported trust or performance claims.
+7. Mark future APIs as roadmap work rather than current capability.
 
 ### TA-Lib validation
 

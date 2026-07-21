@@ -1,58 +1,76 @@
-# Trust and Verification
+# Trust and verification
 
-This page summarizes how to verify `ta-crypto` behavior and release integrity.
+This page describes the checks and limitations of `ta-crypto@0.3.2`.
 
-## What is verified before release
+## Current stable release
 
-- Build and tests across Node versions (CI matrix).
-- Golden parity checks for core indicators.
-- Compatibility checks against external references.
-- Typed API contracts and input validation behavior.
+- Package version: `0.3.2`
+- Git tag: `v0.3.2`
+- Changelog entry: [`CHANGELOG.md`](../CHANGELOG.md)
 
-Primary workflow:
-- `.github/workflows/ci.yml`
+When verifying an installation, confirm that the npm version, Git tag, release commit, and changelog entry agree.
 
-## Compatibility trust model
+## What CI verifies
 
-Policy source:
-- `scripts/compat-policy.json`
+The primary workflow is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml). It runs:
 
-Rules:
-- Reference series are aligned to equal length before comparison.
-- Indicator-specific burn-in is applied before measuring differences.
-- Blocking references: `TA-Lib`, `technicalindicators`.
-- Non-blocking telemetry: `pandas-ta` (environment dependent).
+- builds and tests across the supported Node.js matrix;
+- golden regression tests for selected indicators;
+- external compatibility checks;
+- typed input and runtime contract tests.
 
-Related scripts:
-- `scripts/export-compat-vectors.js`
-- `scripts/compare-technicalindicators.js`
-- `scripts/compare-python-refs.py`
+Release workflows repeat build, test, and compatibility checks before publication.
 
-## How to verify locally
+## Compatibility model
+
+The source of truth for tolerance, burn-in, alignment, and blocking references is [`scripts/compat-policy.json`](../scripts/compat-policy.json).
+
+- TA-Lib and `technicalindicators` are blocking references for the current matrix.
+- pandas-ta is non-blocking telemetry because availability and behavior can vary by environment.
+- Comparisons use overlapping non-null points after indicator-specific burn-in.
+- Golden fixtures detect project regressions but are not independent formula proof.
+
+See [Compatibility](compatibility.md) for the complete matrix and ATR/ADX initialization notes.
+
+## Verify locally
 
 ```bash
 npm ci
-npm run build
 npm test
 npm run test:golden
 npm run test:compat:technicalindicators
-# python deps: pip install -r scripts/requirements-compat.txt
+```
+
+For Python references:
+
+```bash
+python -m pip install -r scripts/requirements-compat.txt
 npm run test:compat:python
 ```
 
+CI uses Linux and Python 3.12 for the full Python reference job. TA-Lib and pandas-ta availability may differ locally.
+
 ## Release traceability
 
-- Changelog history: `CHANGELOG.md`
-- Git tags and releases: GitHub Releases page
-- Current stable line: `v0.3.0`
+Useful evidence:
 
-Recommended verification checks:
-1. Confirm release tag exists and matches expected commit.
-2. Confirm CI run on `main` is green for the release commit.
-3. Confirm compatibility scripts pass in CI logs.
+- [Changelog](../CHANGELOG.md)
+- [GitHub releases](https://github.com/TDamiao/ta-crypto/releases)
+- [npm package](https://www.npmjs.com/package/ta-crypto)
+- [CI workflow](../.github/workflows/ci.yml)
+- [Compatibility policy](../scripts/compat-policy.json)
 
-## Limitations and transparency
+The current release automation is tag-triggered. GitHub Actions is the approved future single release authority, tracked in [issue #37](https://github.com/TDamiao/ta-crypto/issues/37). Until that work lands, local release commands must not be treated as the authoritative release path.
 
-- Some reference libraries differ in warmup semantics; comparisons use overlapping non-null windows.
-- Python reference checks depend on environment packages (`TA-Lib`, `pandas-ta`).
-- Crypto orderflow proxies are candle-derived and not equivalent to L2/L3 order book signals.
+npm Trusted Publishing, provenance, and SBOM work is tracked in [issue #41](https://github.com/TDamiao/ta-crypto/issues/41). Do not claim those controls are active before that issue is completed and verified.
+
+## Known limitations
+
+- Some external libraries use different warmup and initialization conventions.
+- External compatibility currently covers a subset of exported indicators and fixtures.
+- `percentReturn(values, true)` has arithmetic-sum semantics in v0.3.2; the approved v0.4 correction is tracked in [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
+- Log-return and NATR financial-domain validation is being hardened in [#28](https://github.com/TDamiao/ta-crypto/issues/28) and [#29](https://github.com/TDamiao/ta-crypto/issues/29).
+- Candle-derived orderflow functions are not L2/L3 order-book analytics.
+- Backtesting, built-in strategies, screeners, broad adapters, resampling, and complete multi-timeframe support are not current features.
+
+Trust claims in project documentation should point to a real test, policy, workflow, tag, or artifact. Roadmap intentions are not release evidence.
