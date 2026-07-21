@@ -55,7 +55,7 @@ The function returns:
 
 With period `L`, the first potentially non-null regime is at index `2 * L`. Prices feed annualized realized volatility, then a second rolling window standardizes that volatility.
 
-Because this path uses log returns, validate prices as strictly positive in v0.3.2. Domain validation is tracked in [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
+Because this path uses log returns, validate prices as strictly positive in v0.3.4. Domain validation is tracked in [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
 
 ## Candle-derived orderflow proxies
 

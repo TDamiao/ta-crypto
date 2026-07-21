@@ -1,6 +1,6 @@
 # Inputs and candles
 
-This page describes the input shapes supported by `ta-crypto@0.3.2`.
+This page describes the input shapes supported by `ta-crypto@0.3.4`.
 
 ## Price series
 
@@ -98,7 +98,7 @@ The normalized result has this shape:
 
 For volume-dependent calculations, pass volume explicitly when zero is not the intended meaning. The project is tracking a more explicit cross-API policy in [issue #30](https://github.com/TDamiao/ta-crypto/issues/30).
 
-## Validation in v0.3.2
+## Validation in v0.3.4
 
 - Candle normalization rejects missing or non-finite OHLC values with field and index context.
 - Normalized OHLCV arrays are checked for equal lengths.

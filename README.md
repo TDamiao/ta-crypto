@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/ta-crypto.svg)](https://www.npmjs.com/package/ta-crypto)
 [![CI](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml)
 
-Technical analysis indicators and crypto-market utilities for Node.js. The current stable release is `v0.3.2`.
+Technical analysis indicators and crypto-market utilities for Node.js. The current stable release is `v0.3.4`.
 
 ## Install
 
@@ -84,7 +84,7 @@ See [Stateful API](docs/stateful.md) for warmup, parity, and reset behavior.
 
 These items remain roadmap work and must not be treated as current package capabilities.
 
-## Known behavior in v0.3.2
+## Known behavior in v0.3.4
 
 - `percentReturn(values, true)` currently sums periodic simple returns. A controlled breaking correction to compounded cumulative semantics is planned for v0.4 in [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
 - `logReturn` does not yet reject zero or negative prices; see [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
@@ -110,7 +110,7 @@ npm test
 
 Additional compatibility and benchmark commands are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Local release commands are not the release authority. The GitHub Actions release flow is being consolidated under [issue #37](https://github.com/TDamiao/ta-crypto/issues/37); local commands should be used only for validation and dry runs.
+GitHub Actions and Release Please are the single release authority. Conventional commits on `main` create or update a Release PR; merging that PR creates the matching tag and GitHub Release, runs the release checks, and publishes to npm. Local commands are limited to validation and dry runs. See [Trust and verification](docs/trust.md) for the complete flow and recovery boundaries.
 
 ## Project references
 

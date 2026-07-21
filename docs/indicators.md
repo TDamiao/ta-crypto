@@ -1,6 +1,6 @@
 # Indicators
 
-This page documents the batch indicators exported by `ta-crypto@0.3.2`. Outputs are aligned to the input length and use `null` during warmup.
+This page documents the batch indicators exported by `ta-crypto@0.3.4`. Outputs are aligned to the input length and use `null` during warmup.
 
 Use positive integer periods. Cross-API period validation is being standardized in [issue #30](https://github.com/TDamiao/ta-crypto/issues/30).
 
@@ -23,7 +23,7 @@ const trend = adx(high, low, close, 14);
 
 `period` below means the period supplied to the function. The index is zero-based.
 
-| Function | Default parameters | First potentially non-null index in v0.3.2 | Notes |
+| Function | Default parameters | First potentially non-null index in v0.3.4 | Notes |
 | --- | --- | --- | --- |
 | `sma` | 14 | `period - 1` | Simple rolling mean. |
 | `ema` | 14 | `period - 1` | Seeded with the first-period mean. |
@@ -75,7 +75,7 @@ const directional = adx(high, low, close, 14);
 
 ATR and ADX are compared with external libraries only after indicator-specific burn-in. This accounts for initialization differences; it does not mean the first emitted values are interchangeable across libraries. See [Compatibility](compatibility.md).
 
-In v0.3.2, NATR does not reject zero or negative closes before division. Validate close prices as strictly positive until [issue #29](https://github.com/TDamiao/ta-crypto/issues/29) is released.
+In v0.3.4, NATR does not reject zero or negative closes before division. Validate close prices as strictly positive until [issue #29](https://github.com/TDamiao/ta-crypto/issues/29) is released.
 
 ## Returns
 
@@ -91,11 +91,11 @@ const currentArithmeticSum = percentReturn(close, true);
 Important current-version behavior:
 
 - `logReturn(values, true)` sums log returns, which is equivalent to a cumulative log return for valid positive prices.
-- `percentReturn(values, true)` in v0.3.2 sums periodic simple returns. It does not compound them.
+- `percentReturn(values, true)` in v0.3.4 sums periodic simple returns. It does not compound them.
 - v0.4 will make cumulative percent return compound and move arithmetic summation to an explicit API or mode. The boolean signature will be deprecated. See [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
 - `logReturn` does not yet enforce strictly positive prices. Validate them before calling it; see [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
 
-For `[100, 110, 121]`, the two 10% periodic returns sum to 20%, while the compounded cumulative return is 21%. v0.3.2's `percentReturn(values, true)` returns the arithmetic 20% path.
+For `[100, 110, 121]`, the two 10% periodic returns sum to 20%, while the compounded cumulative return is 21%. v0.3.4's `percentReturn(values, true)` returns the arithmetic 20% path.
 
 ## Volume
 

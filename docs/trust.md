@@ -1,11 +1,11 @@
 # Trust and verification
 
-This page describes the checks and limitations of `ta-crypto@0.3.2`.
+This page describes the checks, release process, and limitations of `ta-crypto@0.3.4`.
 
 ## Current stable release
 
-- Package version: `0.3.2`
-- Git tag: `v0.3.2`
+- Package version: `0.3.4`
+- Git tag: `v0.3.4`
 - Changelog entry: [`CHANGELOG.md`](../CHANGELOG.md)
 
 When verifying an installation, confirm that the npm version, Git tag, release commit, and changelog entry agree.
@@ -60,7 +60,17 @@ Useful evidence:
 - [CI workflow](../.github/workflows/ci.yml)
 - [Compatibility policy](../scripts/compat-policy.json)
 
-The current release automation is tag-triggered. GitHub Actions is the approved future single release authority, tracked in [issue #37](https://github.com/TDamiao/ta-crypto/issues/37). Until that work lands, local release commands must not be treated as the authoritative release path.
+GitHub Actions and [Release Please](../.github/workflows/release-please.yml) are the single release authority:
+
+1. A qualifying conventional commit on `main` creates or updates one Release PR.
+2. The Release PR contains the package version, manifest, lockfile, and changelog changes.
+3. Merging the Release PR creates the matching Git tag and GitHub Release.
+4. The workflow checks out that tag, installs locked dependencies, and runs tests, compatibility checks, and `npm pack --dry-run`.
+5. The workflow publishes to npm only when that exact version is not already present.
+
+Local commands do not create release commits, tags, GitHub Releases, or npm publications. `npm run release:check` is the supported local validation and dry-run entry point.
+
+If validation or npm publication fails after the tag and GitHub Release exist, fix the external cause and rerun only the failed GitHub Actions jobs. The npm version check prevents a rerun from attempting to overwrite an existing version. Published npm versions and Git tags are immutable recovery boundaries; corrections require a new patch release.
 
 npm Trusted Publishing, provenance, and SBOM work is tracked in [issue #41](https://github.com/TDamiao/ta-crypto/issues/41). Do not claim those controls are active before that issue is completed and verified.
 
@@ -68,7 +78,7 @@ npm Trusted Publishing, provenance, and SBOM work is tracked in [issue #41](http
 
 - Some external libraries use different warmup and initialization conventions.
 - External compatibility currently covers a subset of exported indicators and fixtures.
-- `percentReturn(values, true)` has arithmetic-sum semantics in v0.3.2; the approved v0.4 correction is tracked in [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
+- `percentReturn(values, true)` has arithmetic-sum semantics in v0.3.4; the approved v0.4 correction is tracked in [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
 - Log-return and NATR financial-domain validation is being hardened in [#28](https://github.com/TDamiao/ta-crypto/issues/28) and [#29](https://github.com/TDamiao/ta-crypto/issues/29).
 - Candle-derived orderflow functions are not L2/L3 order-book analytics.
 - Backtesting, built-in strategies, screeners, broad adapters, resampling, and complete multi-timeframe support are not current features.
