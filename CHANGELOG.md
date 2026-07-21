@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Reorganize the README as a concise capability and documentation index.
+- Add focused references for inputs, indicators, crypto utilities, stateful APIs, and compatibility.
+- Synchronize stable-version references and document current v0.3.2 semantics, warmup behavior, limitations, and planned v0.4 corrections.
+
 ## 0.3.2 - 2026-07-12
 
 - Add runnable RSI, session VWAP, funding analytics, and external-reference compatibility examples.
