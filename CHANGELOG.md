@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## [0.3.4](https://github.com/TDamiao/ta-crypto/compare/v0.3.3...v0.3.4) (2026-07-21)
+
+
+### Bug Fixes
+
+* **docs:** synchronize release documentation for v0.3.4 ([03798c0](https://github.com/TDamiao/ta-crypto/commit/03798c02dca94168db60ab65caa4830c05c3dc82))
+* **docs:** synchronize release documentation for v0.3.4 ([9cdd9ba](https://github.com/TDamiao/ta-crypto/commit/9cdd9bac22eea456cd78896e5d445d8d24b4fd33))
+
 ## [0.3.3](https://github.com/TDamiao/ta-crypto/compare/v0.3.2...v0.3.3) (2026-07-21)
 
 ### Documentation
