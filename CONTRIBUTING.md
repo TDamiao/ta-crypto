@@ -4,7 +4,7 @@ Thanks for contributing.
 
 ## Current release line
 
-`v0.3.2` is the current stable release.
+`v0.3.4` is the current stable release.
 The v0.4 contribution priority is core hardening:
 1. Financial semantics and numeric validation.
 2. Compatibility and reproducibility depth.
@@ -46,6 +46,20 @@ npm run test:compat:python
 npm run bench
 npm run bench:rolling
 ```
+
+## Release process
+
+GitHub Actions and Release Please are the only release authority. Contributors must not create release commits, tags, GitHub Releases, or npm publications locally.
+
+Use conventional commit prefixes such as `fix:`, `feat:`, and `docs:` so Release Please can classify changes. After a qualifying commit reaches `main`, the workflow creates or updates one Release PR. Merging that PR creates the version commit, tag, and GitHub Release, then runs the release checks and publishes to npm.
+
+Local release work is limited to validation and dry runs:
+
+```bash
+npm run release:check
+```
+
+See [Trust and verification](docs/trust.md) for traceability and failure recovery.
 
 ## Code standards
 

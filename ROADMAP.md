@@ -26,6 +26,15 @@ This roadmap separates released capabilities from planned work. GitHub issues ar
 - Runnable RSI, session VWAP, funding, and external-reference examples.
 - Trust and verification documentation.
 
+### v0.3.3
+
+- Focused package documentation for inputs, indicators, crypto utilities, stateful APIs, compatibility, and trust.
+- Release Please automation as the single authority for versions, tags, GitHub Releases, and npm publication.
+
+### v0.3.4
+
+- Synchronize published version references and document the active Release Please flow and failure recovery.
+
 ## v0.4 focus
 
 The v0.4 release is a core-hardening release, tracked by [issue #21](https://github.com/TDamiao/ta-crypto/issues/21).
@@ -36,7 +45,7 @@ Priorities:
 2. Optimize remaining rolling indicators with parity benchmarks.
 3. Expand stateful coverage with batch parity and deterministic reset.
 4. Broaden independent compatibility evidence.
-5. Make release automation and package publication auditable and secure.
+5. Harden package publication with trusted publishing, provenance, and supply-chain evidence.
 6. Keep documentation synchronized with shipped behavior.
 
 Basic candle resampling is not a v0.4 gate. It remains open for v0.5 or later in [issue #6](https://github.com/TDamiao/ta-crypto/issues/6).
