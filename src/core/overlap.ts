@@ -71,27 +71,37 @@ export function vwap(
   if (length !== undefined) {
     assertPositiveInteger("length", length);
   }
-  const typical = hlc3(high, low, close).map(v => (isNum(v) ? v : 0));
-  const out = makeSeries(high.length);
+  const len = high.length;
+  const out = makeSeries(len);
   if (length === undefined) {
     let cumPV = 0;
     let cumV = 0;
-    for (let i = 0; i < high.length; i++) {
-      cumPV += typical[i] * volume[i];
+    for (let i = 0; i < len; i++) {
+      const typical = (high[i] + low[i] + close[i]) / 3;
+      cumPV += typical * volume[i];
       cumV += volume[i];
       out[i] = cumV === 0 ? null : cumPV / cumV;
     }
     return out;
   }
 
-  for (let i = length - 1; i < high.length; i++) {
-    let pv = 0;
-    let v = 0;
-    for (let j = i - length + 1; j <= i; j++) {
-      pv += typical[j] * volume[j];
-      v += volume[j];
+  const pvBuf = new Float64Array(length);
+  const vBuf = new Float64Array(length);
+  let rollingPV = 0;
+  let rollingV = 0;
+
+  for (let i = 0; i < len; i++) {
+    const curPV = ((high[i] + low[i] + close[i]) / 3) * volume[i];
+    const curV = volume[i];
+    const slot = i % length;
+    rollingPV += curPV - pvBuf[slot];
+    rollingV += curV - vBuf[slot];
+    pvBuf[slot] = curPV;
+    vBuf[slot] = curV;
+
+    if (i >= length - 1) {
+      out[i] = rollingV === 0 ? null : rollingPV / rollingV;
     }
-    out[i] = v === 0 ? null : pv / v;
   }
   return out;
 }

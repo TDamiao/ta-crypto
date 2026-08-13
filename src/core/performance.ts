@@ -81,11 +81,35 @@ export function realizedVolatility(values: number[], length = 30, periodsPerYear
     throw new Error("periodsPerYear must be a positive number");
   }
   assertPositiveSeries("values", values);
-  const rets = logReturn(values).map(v => (v === null ? 0 : v));
-  const out = makeSeries(values.length);
-  for (let i = length; i < values.length; i++) {
-    const s = stdev(rets, i - length + 1, i);
-    out[i] = s * Math.sqrt(periodsPerYear);
+  const len = values.length;
+  const out = makeSeries(len);
+  if (len <= length) return out;
+
+  const rets = new Array<number>(len);
+  rets[0] = 0;
+  for (let i = 1; i < len; i++) {
+    rets[i] = Math.log(values[i] / values[i - 1]);
+  }
+
+  const factor = Math.sqrt(periodsPerYear);
+  let retSum = 0;
+  let retSumSq = 0;
+
+  for (let i = 1; i < len; i++) {
+    const r = rets[i];
+    retSum += r;
+    retSumSq += r * r;
+    if (i > length) {
+      const removed = rets[i - length];
+      retSum -= removed;
+      retSumSq -= removed * removed;
+    }
+    if (i >= length) {
+      const m = retSum / length;
+      const variance = Math.max(0, retSumSq / length - m * m);
+      const s = Math.sqrt(variance);
+      out[i] = s * factor;
+    }
   }
   return out;
 }

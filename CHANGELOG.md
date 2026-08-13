@@ -18,6 +18,14 @@
 * **volatility:** reject non-positive close prices ($\le 0$) in `natr` with index-aware errors ([#29](https://github.com/TDamiao/ta-crypto/issues/29)).
 * **core:** standardize positive-integer period validation across all batch indicators and stateful constructors ([#30](https://github.com/TDamiao/ta-crypto/issues/30)).
 
+### Performance Improvements
+
+* **volume:** optimize `mfi` with single-pass circular buffer rolling flow sums ([#31](https://github.com/TDamiao/ta-crypto/issues/31)).
+* **overlap:** optimize periodic `vwap` with $O(1)$ memory rolling price-volume and volume accumulators ([#32](https://github.com/TDamiao/ta-crypto/issues/32)).
+* **crypto:** optimize `volumeDelta` and `orderflowImbalance` with single-pass rolling signed and total volume sums ([#33](https://github.com/TDamiao/ta-crypto/issues/33)).
+* **crypto:** remove repeated window slicing from `volatilityRegime` and optimize `realizedVolatility` with $O(n)$ rolling variance ([#34](https://github.com/TDamiao/ta-crypto/issues/34)).
+* **core:** optimize `makeSeries` with fast array fill allocation.
+
 ## [0.3.4](https://github.com/TDamiao/ta-crypto/compare/v0.3.3...v0.3.4) (2026-07-21)
 
 

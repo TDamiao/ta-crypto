@@ -67,20 +67,35 @@ export function volatilityRegime(
   }
   assertPositiveSeries("values", values);
   const vol = realizedVolatility(values, length, periodsPerYear);
-  const out = makeSeries(values.length);
+  const len = values.length;
+  const out = makeSeries(len);
+  if (len <= length * 2) return out;
 
-  for (let i = length * 2; i < values.length; i++) {
-    const windowStart = i - length + 1;
-    const windowEnd = i;
-    const window = vol.slice(windowStart, windowEnd + 1).map(v => (v === null ? 0 : v));
-    const m = mean(window, 0, window.length - 1);
-    const s = stdev(window, 0, window.length - 1);
-    if (s === 0) {
-      out[i] = 0;
-      continue;
+  let volSum = 0;
+  let volSumSq = 0;
+
+  for (let i = length + 1; i < len; i++) {
+    const v = vol[i] as number;
+    volSum += v;
+    volSumSq += v * v;
+
+    if (i > length * 2) {
+      const removed = vol[i - length] as number;
+      volSum -= removed;
+      volSumSq -= removed * removed;
     }
-    const z = ((vol[i] as number) - m) / s;
-    out[i] = z > highZ ? 1 : z < lowZ ? -1 : 0;
+
+    if (i >= length * 2) {
+      const m = volSum / length;
+      const variance = Math.max(0, volSumSq / length - m * m);
+      const s = Math.sqrt(variance);
+      if (s === 0) {
+        out[i] = 0;
+      } else {
+        const z = (v - m) / s;
+        out[i] = z > highZ ? 1 : z < lowZ ? -1 : 0;
+      }
+    }
   }
 
   return out;
@@ -102,13 +117,23 @@ export function volumeDelta(
   volume: number[],
   length = 14
 ): Array<number | null> {
+  assertSameLength(open, close, volume);
   assertPositiveInteger("length", length);
-  const sv = signedVolume(open, close, volume).map(v => (v === null ? 0 : v));
-  const out = makeSeries(close.length);
-  for (let i = length - 1; i < close.length; i++) {
-    let acc = 0;
-    for (let j = i - length + 1; j <= i; j++) acc += sv[j];
-    out[i] = acc;
+  const len = close.length;
+  const out = makeSeries(len);
+  let total = 0;
+  for (let i = 0; i < len; i++) {
+    const diff = close[i] - open[i];
+    const sv = diff > 0 ? volume[i] : diff < 0 ? -volume[i] : 0;
+    total += sv;
+    if (i >= length) {
+      const oldDiff = close[i - length] - open[i - length];
+      const oldSv = oldDiff > 0 ? volume[i - length] : oldDiff < 0 ? -volume[i - length] : 0;
+      total -= oldSv;
+    }
+    if (i >= length - 1) {
+      out[i] = total;
+    }
   }
   return out;
 }
@@ -121,16 +146,24 @@ export function orderflowImbalance(
 ): Array<number | null> {
   assertSameLength(open, close, volume);
   assertPositiveInteger("length", length);
-  const out = makeSeries(close.length);
-  for (let i = length - 1; i < close.length; i++) {
-    let signed = 0;
-    let total = 0;
-    for (let j = i - length + 1; j <= i; j++) {
-      const diff = close[j] - open[j];
-      signed += diff > 0 ? volume[j] : diff < 0 ? -volume[j] : 0;
-      total += volume[j];
+  const len = close.length;
+  const out = makeSeries(len);
+  let signedTotal = 0;
+  let volumeTotal = 0;
+  for (let i = 0; i < len; i++) {
+    const diff = close[i] - open[i];
+    const sv = diff > 0 ? volume[i] : diff < 0 ? -volume[i] : 0;
+    signedTotal += sv;
+    volumeTotal += volume[i];
+    if (i >= length) {
+      const oldDiff = close[i - length] - open[i - length];
+      const oldSv = oldDiff > 0 ? volume[i - length] : oldDiff < 0 ? -volume[i - length] : 0;
+      signedTotal -= oldSv;
+      volumeTotal -= volume[i - length];
     }
-    out[i] = total === 0 ? null : signed / total;
+    if (i >= length - 1) {
+      out[i] = volumeTotal === 0 ? null : signedTotal / volumeTotal;
+    }
   }
   return out;
 }

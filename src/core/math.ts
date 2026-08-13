@@ -38,7 +38,7 @@ export function assertSameLength(...series: number[][]): void {
 }
 
 export function makeSeries(length: number): Array<number | null> {
-  return Array.from({ length }, () => null);
+  return new Array<number | null>(length).fill(null);
 }
 
 export function sum(values: number[], start: number, end: number): number {
