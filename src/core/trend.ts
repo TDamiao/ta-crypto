@@ -1,9 +1,10 @@
-import { assertSameLength, makeSeries } from "./math.js";
+import { assertPositiveInteger, assertSameLength, makeSeries } from "./math.js";
 import { rma } from "./overlap.js";
 import { trueRange } from "./volatility.js";
 
 export function adx(high: number[], low: number[], close: number[], length = 14) {
   assertSameLength(high, low, close);
+  assertPositiveInteger("length", length);
   const len = close.length;
 
   const plusDM: number[] = new Array(len).fill(0);

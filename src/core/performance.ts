@@ -1,4 +1,4 @@
-import { assertFiniteSeries, assertPositiveSeries, makeSeries, stdev } from "./math.js";
+import { assertFiniteSeries, assertPositiveInteger, assertPositiveSeries, makeSeries, stdev } from "./math.js";
 import type { PercentReturnMode, PercentReturnOptions } from "../types.js";
 
 export function logReturn(values: number[], cumulative = false): Array<number | null> {
@@ -76,8 +76,10 @@ export function percentReturn(
 }
 
 export function realizedVolatility(values: number[], length = 30, periodsPerYear = 365): Array<number | null> {
-  if (length <= 0) throw new Error("length must be > 0");
-  if (periodsPerYear <= 0) throw new Error("periodsPerYear must be > 0");
+  assertPositiveInteger("length", length);
+  if (!Number.isFinite(periodsPerYear) || periodsPerYear <= 0) {
+    throw new Error("periodsPerYear must be a positive number");
+  }
   assertPositiveSeries("values", values);
   const rets = logReturn(values).map(v => (v === null ? 0 : v));
   const out = makeSeries(values.length);

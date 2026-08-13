@@ -1,4 +1,5 @@
 import { RollingMean } from "./core/rolling.js";
+import { assertPositiveInteger } from "./core/math.js";
 
 export type StatefulIndicator<TIn, TOut> = {
   next(value: TIn): TOut;
@@ -6,9 +7,7 @@ export type StatefulIndicator<TIn, TOut> = {
 };
 
 export function createSMA(period = 14): StatefulIndicator<number, number | null> {
-  if (period <= 0) {
-    throw new Error("period must be > 0");
-  }
+  assertPositiveInteger("period", period);
 
   const rolling = new RollingMean(period);
 
@@ -27,9 +26,7 @@ export function createSMA(period = 14): StatefulIndicator<number, number | null>
 }
 
 export function createEMA(period = 14): StatefulIndicator<number, number | null> {
-  if (period <= 0) {
-    throw new Error("period must be > 0");
-  }
+  assertPositiveInteger("period", period);
 
   const k = 2 / (period + 1);
   let seedSum = 0;
@@ -64,9 +61,7 @@ export function createEMA(period = 14): StatefulIndicator<number, number | null>
 }
 
 export function createRSI(period = 14): StatefulIndicator<number, number | null> {
-  if (period <= 0) {
-    throw new Error("period must be > 0");
-  }
+  assertPositiveInteger("period", period);
 
   let prevPrice: number | null = null;
   let avgGain = 0;

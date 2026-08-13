@@ -1,8 +1,8 @@
 # Indicators
 
-This page documents the batch indicators exported by `ta-crypto@0.3.4`. Outputs are aligned to the input length and use `null` during warmup.
+This page documents the batch indicators exported by `ta-crypto`. Outputs are aligned to the input length and use `null` during warmup.
 
-Use positive integer periods. Cross-API period validation is being standardized in [issue #30](https://github.com/TDamiao/ta-crypto/issues/30).
+All period-bearing APIs strictly enforce positive integer parameters (`period >= 1`). Fractional, non-positive, NaN, and infinite periods are rejected with explicit errors ([issue #30](https://github.com/TDamiao/ta-crypto/issues/30)).
 
 ## Output shapes
 
@@ -76,7 +76,7 @@ const directional = adx(high, low, close, 14);
 
 ATR and ADX are compared with external libraries only after indicator-specific burn-in. This accounts for initialization differences; it does not mean the first emitted values are interchangeable across libraries. See [Compatibility](compatibility.md).
 
-In v0.3.4, NATR does not reject zero or negative closes before division. Validate close prices as strictly positive until [issue #29](https://github.com/TDamiao/ta-crypto/issues/29) is released.
+`natr` calculates normalized average true range ($\frac{ATR}{close} \times 100$) and enforces a strictly positive close price domain ($close > 0$) starting in v0.4 ([issue #29](https://github.com/TDamiao/ta-crypto/issues/29)). Non-positive or non-finite closing prices are rejected with index-aware errors before division.
 
 ## Returns
 

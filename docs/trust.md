@@ -79,7 +79,7 @@ npm Trusted Publishing, provenance, and SBOM work is tracked in [issue #41](http
 - Some external libraries use different warmup and initialization conventions.
 - External compatibility currently covers a subset of exported indicators and fixtures.
 - `percentReturn(values, { cumulative: true })` compounds cumulative return in v0.4 ([issue #27](https://github.com/TDamiao/ta-crypto/issues/27)). Arithmetic summation is available via `sumPeriodicReturns` or `{ mode: "sum" }`. The deprecated boolean signature is supported with compound semantics during the v0.4 migration window.
-- `logReturn`, `realizedVolatility`, and `volatilityRegime` enforce strictly positive prices ($P_t > 0$) in v0.4 ([issue #28](https://github.com/TDamiao/ta-crypto/issues/28)). NATR positive close domain validation is being hardened in [#29](https://github.com/TDamiao/ta-crypto/issues/29).
+- `logReturn`, `realizedVolatility`, `volatilityRegime`, and `natr` enforce strictly positive prices in v0.4 ([issues #28, #29](https://github.com/TDamiao/ta-crypto/issues/28)). Period-bearing APIs uniformly validate positive integer periods ([issue #30](https://github.com/TDamiao/ta-crypto/issues/30)).
 - Candle-derived orderflow functions are not L2/L3 order-book analytics.
 - Backtesting, built-in strategies, screeners, broad adapters, resampling, and complete multi-timeframe support are not current features.
 

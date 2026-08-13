@@ -1,7 +1,13 @@
-import { assertSameLength, makeSeries } from "./math.js";
+import { assertPositiveInteger, assertSameLength, makeSeries } from "./math.js";
 import { ema } from "./overlap.js";
 
 export function macd(values: number[], fast = 12, slow = 26, signal = 9) {
+  assertPositiveInteger("fast", fast);
+  assertPositiveInteger("slow", slow);
+  assertPositiveInteger("signal", signal);
+  if (fast >= slow) {
+    throw new Error(`fast period (${fast}) must be less than slow period (${slow})`);
+  }
   const fastEma = ema(values, fast);
   const slowEma = ema(values, slow);
   const macdLine = makeSeries(values.length);
@@ -19,8 +25,9 @@ export function macd(values: number[], fast = 12, slow = 26, signal = 9) {
 }
 
 export function rsi(values: number[], length = 14): Array<number | null> {
+  assertPositiveInteger("length", length);
   const out = makeSeries(values.length);
-  if (length <= 0 || values.length < length + 1) return out;
+  if (values.length < length + 1) return out;
 
   let gain = 0;
   let loss = 0;
@@ -55,6 +62,8 @@ export function stoch(
   dLength = 3
 ) {
   assertSameLength(high, low, close);
+  assertPositiveInteger("kLength", kLength);
+  assertPositiveInteger("dLength", dLength);
   const len = close.length;
   const k = makeSeries(len);
   const d = makeSeries(len);

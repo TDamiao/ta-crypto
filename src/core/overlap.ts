@@ -1,14 +1,14 @@
-import { assertSameLength, isNum, makeSeries, mean } from "./math.js";
+import { assertPositiveInteger, assertSameLength, isNum, makeSeries, mean } from "./math.js";
 import { rollingMean, rollingMeanStdDev } from "./rolling.js";
 
 export function sma(values: number[], length = 14): Array<number | null> {
-  if (length <= 0) return makeSeries(values.length);
+  assertPositiveInteger("length", length);
   return rollingMean(values, length);
 }
 
 export function ema(values: number[], length = 14): Array<number | null> {
+  assertPositiveInteger("length", length);
   const out = makeSeries(values.length);
-  if (length <= 0) return out;
   const k = 2 / (length + 1);
   let prev = 0;
   for (let i = 0; i < values.length; i++) {
@@ -24,8 +24,8 @@ export function ema(values: number[], length = 14): Array<number | null> {
 }
 
 export function rma(values: number[], length = 14): Array<number | null> {
+  assertPositiveInteger("length", length);
   const out = makeSeries(values.length);
-  if (length <= 0) return out;
   let prev = 0;
   for (let i = 0; i < values.length; i++) {
     if (i === length - 1) {
@@ -68,9 +68,12 @@ export function vwap(
   length?: number
 ): Array<number | null> {
   assertSameLength(high, low, close, volume);
+  if (length !== undefined) {
+    assertPositiveInteger("length", length);
+  }
   const typical = hlc3(high, low, close).map(v => (isNum(v) ? v : 0));
   const out = makeSeries(high.length);
-  if (!length || length <= 0) {
+  if (length === undefined) {
     let cumPV = 0;
     let cumV = 0;
     for (let i = 0; i < high.length; i++) {
@@ -94,12 +97,9 @@ export function vwap(
 }
 
 export function bbands(values: number[], length = 20, std = 2) {
-  if (length <= 0) {
-    return {
-      basis: makeSeries(values.length),
-      upper: makeSeries(values.length),
-      lower: makeSeries(values.length)
-    };
+  assertPositiveInteger("length", length);
+  if (!isNum(std) || std < 0) {
+    throw new Error("std must be a non-negative finite number");
   }
   const { mean: basis, stdDev: upper } = rollingMeanStdDev(values, length);
   const lower = makeSeries(values.length);

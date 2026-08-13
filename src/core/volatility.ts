@@ -1,4 +1,4 @@
-import { assertSameLength, makeSeries } from "./math.js";
+import { assertPositiveInteger, assertPositiveSeries, assertSameLength, makeSeries } from "./math.js";
 import { rma } from "./overlap.js";
 
 export function trueRange(high: number[], low: number[], close: number[]): Array<number | null> {
@@ -20,11 +20,14 @@ export function trueRange(high: number[], low: number[], close: number[]): Array
 }
 
 export function atr(high: number[], low: number[], close: number[], length = 14): Array<number | null> {
+  assertPositiveInteger("length", length);
   const tr = trueRange(high, low, close).map(v => (v === null ? 0 : v));
   return rma(tr, length);
 }
 
 export function natr(high: number[], low: number[], close: number[], length = 14): Array<number | null> {
+  assertPositiveInteger("length", length);
+  assertPositiveSeries("close", close);
   const atrv = atr(high, low, close, length);
   const out = makeSeries(close.length);
   for (let i = 0; i < close.length; i++) {

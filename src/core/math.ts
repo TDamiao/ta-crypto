@@ -21,6 +21,12 @@ export function assertPositiveSeries(name: string, values: number[]): void {
   }
 }
 
+export function assertPositiveInteger(name: string, value: number): void {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${name} must be a positive integer`);
+  }
+}
+
 export function assertSameLength(...series: number[][]): void {
   if (series.length === 0) return;
   const len = series[0].length;

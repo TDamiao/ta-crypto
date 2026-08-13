@@ -1,4 +1,4 @@
-import { assertPositiveSeries, assertSameLength, makeSeries, mean, stdev } from "./math.js";
+import { assertPositiveInteger, assertPositiveSeries, assertSameLength, makeSeries, mean, stdev } from "./math.js";
 import { hlc3 } from "./overlap.js";
 import { realizedVolatility } from "./performance.js";
 
@@ -44,6 +44,9 @@ export function fundingRateCumulative(values: number[]): Array<number | null> {
 }
 
 export function fundingRateAPR(values: number[], periodsPerYear = 365 * 3): Array<number | null> {
+  if (!Number.isFinite(periodsPerYear) || periodsPerYear <= 0) {
+    throw new Error("periodsPerYear must be a positive number");
+  }
   const out = makeSeries(values.length);
   for (let i = 0; i < values.length; i++) {
     out[i] = values[i] * periodsPerYear * 100;
@@ -58,8 +61,10 @@ export function volatilityRegime(
   lowZ = -0.5,
   highZ = 0.5
 ): Array<number | null> {
-  if (length <= 0) throw new Error("length must be > 0");
-  if (periodsPerYear <= 0) throw new Error("periodsPerYear must be > 0");
+  assertPositiveInteger("length", length);
+  if (!Number.isFinite(periodsPerYear) || periodsPerYear <= 0) {
+    throw new Error("periodsPerYear must be a positive number");
+  }
   assertPositiveSeries("values", values);
   const vol = realizedVolatility(values, length, periodsPerYear);
   const out = makeSeries(values.length);
@@ -97,9 +102,9 @@ export function volumeDelta(
   volume: number[],
   length = 14
 ): Array<number | null> {
+  assertPositiveInteger("length", length);
   const sv = signedVolume(open, close, volume).map(v => (v === null ? 0 : v));
   const out = makeSeries(close.length);
-  if (length <= 0) return out;
   for (let i = length - 1; i < close.length; i++) {
     let acc = 0;
     for (let j = i - length + 1; j <= i; j++) acc += sv[j];
@@ -115,8 +120,8 @@ export function orderflowImbalance(
   length = 14
 ): Array<number | null> {
   assertSameLength(open, close, volume);
+  assertPositiveInteger("length", length);
   const out = makeSeries(close.length);
-  if (length <= 0) return out;
   for (let i = length - 1; i < close.length; i++) {
     let signed = 0;
     let total = 0;

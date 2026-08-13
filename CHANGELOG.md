@@ -15,6 +15,8 @@
 ### Bug Fixes
 
 * **performance:** reject non-positive prices ($\le 0$) and non-finite values in `logReturn`, `realizedVolatility`, and `volatilityRegime` with index-aware errors ([#28](https://github.com/TDamiao/ta-crypto/issues/28)).
+* **volatility:** reject non-positive close prices ($\le 0$) in `natr` with index-aware errors ([#29](https://github.com/TDamiao/ta-crypto/issues/29)).
+* **core:** standardize positive-integer period validation across all batch indicators and stateful constructors ([#30](https://github.com/TDamiao/ta-crypto/issues/30)).
 
 ## [0.3.4](https://github.com/TDamiao/ta-crypto/compare/v0.3.3...v0.3.4) (2026-07-21)
 

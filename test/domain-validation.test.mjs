@@ -122,10 +122,10 @@ test("realizedVolatility rejects zero and negative prices with index-aware error
 });
 
 test("realizedVolatility validates period parameters", () => {
-  assert.throws(() => realizedVolatility([100, 105, 110], 0), /length must be > 0/);
-  assert.throws(() => realizedVolatility([100, 105, 110], -5), /length must be > 0/);
-  assert.throws(() => realizedVolatility([100, 105, 110], 2, 0), /periodsPerYear must be > 0/);
-  assert.throws(() => realizedVolatility([100, 105, 110], 2, -365), /periodsPerYear must be > 0/);
+  assert.throws(() => realizedVolatility([100, 105, 110], 0), /length must be a positive integer/);
+  assert.throws(() => realizedVolatility([100, 105, 110], -5), /length must be a positive integer/);
+  assert.throws(() => realizedVolatility([100, 105, 110], 2, 0), /periodsPerYear must be a positive number/);
+  assert.throws(() => realizedVolatility([100, 105, 110], 2, -365), /periodsPerYear must be a positive number/);
 });
 
 test("realizedVolatility preserves warmup and returns finite values for positive prices", () => {
@@ -158,8 +158,8 @@ test("volatilityRegime rejects zero and negative prices with index-aware errors"
 });
 
 test("volatilityRegime validates parameters", () => {
-  assert.throws(() => volatilityRegime([100, 105, 110], 0), /length must be > 0/);
-  assert.throws(() => volatilityRegime([100, 105, 110], 2, 0), /periodsPerYear must be > 0/);
+  assert.throws(() => volatilityRegime([100, 105, 110], 0), /length must be a positive integer/);
+  assert.throws(() => volatilityRegime([100, 105, 110], 2, 0), /periodsPerYear must be a positive number/);
 });
 
 test("volatilityRegime preserves warmup and outputs discrete regimes (-1, 0, 1)", () => {
