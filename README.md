@@ -90,7 +90,7 @@ These items remain roadmap work and must not be treated as current package capab
 ## Known behavior in v0.4
 
 - `percentReturn(values, { cumulative: true })` compounds cumulative return from the initial price ([issue #27](https://github.com/TDamiao/ta-crypto/issues/27)). Arithmetic sum of periodic returns is available via `sumPeriodicReturns(values)` or `{ mode: "sum" }`. The deprecated boolean signature is supported with compound semantics during the v0.4 migration window.
-- `logReturn` does not yet reject zero or negative prices; see [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
+- `logReturn`, `realizedVolatility`, and `volatilityRegime` enforce strictly positive prices ($P_t > 0$) with index-aware errors ([issue #28](https://github.com/TDamiao/ta-crypto/issues/28)).
 - NATR does not yet reject zero or negative closing prices; see [issue #29](https://github.com/TDamiao/ta-crypto/issues/29).
 - Period validation is not yet uniform across every API; see [issue #30](https://github.com/TDamiao/ta-crypto/issues/30).
 

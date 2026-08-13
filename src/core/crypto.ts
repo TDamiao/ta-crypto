@@ -1,4 +1,4 @@
-import { assertSameLength, makeSeries, mean, stdev } from "./math.js";
+import { assertPositiveSeries, assertSameLength, makeSeries, mean, stdev } from "./math.js";
 import { hlc3 } from "./overlap.js";
 import { realizedVolatility } from "./performance.js";
 
@@ -58,6 +58,9 @@ export function volatilityRegime(
   lowZ = -0.5,
   highZ = 0.5
 ): Array<number | null> {
+  if (length <= 0) throw new Error("length must be > 0");
+  if (periodsPerYear <= 0) throw new Error("periodsPerYear must be > 0");
+  assertPositiveSeries("values", values);
   const vol = realizedVolatility(values, length, periodsPerYear);
   const out = makeSeries(values.length);
 

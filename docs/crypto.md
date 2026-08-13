@@ -53,9 +53,7 @@ The function returns:
 - `1` above the high z-score threshold;
 - `null` during warmup.
 
-With period `L`, the first potentially non-null regime is at index `2 * L`. Prices feed annualized realized volatility, then a second rolling window standardizes that volatility.
-
-Because this path uses log returns, validate prices as strictly positive in v0.3.4. Domain validation is tracked in [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
+Because this path uses log returns, it enforces strictly positive prices (> 0) starting in v0.4 ([issue #28](https://github.com/TDamiao/ta-crypto/issues/28)). Non-positive or non-finite prices are rejected with index-aware errors before volatility calculations.
 
 ## Candle-derived orderflow proxies
 

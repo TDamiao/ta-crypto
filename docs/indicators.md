@@ -125,6 +125,14 @@ For prices `[100, 110, 121]`:
 
 > **API Lifecycle Notice**: Passing a boolean argument (`cumulative: boolean`) to `percentReturn` is **deprecated** in v0.4. During the v0.4 migration window, passing `true` invokes compounded cumulative return. The boolean signature is scheduled for complete removal in `v1.0.0`.
 
+### Positive Price Domain Validation
+
+In financial mathematics, the logarithm of non-positive numbers ($\ln(0)$ or $\ln(x)$ for $x < 0$) is undefined in real numbers. Starting in v0.4 ([issue #28](https://github.com/TDamiao/ta-crypto/issues/28)):
+
+- `logReturn`, `realizedVolatility`, and `volatilityRegime` enforce a strictly positive price domain ($P_t > 0$).
+- Passing zero ($0$), negative numbers, `NaN`, or infinite values throws an immediate, index-aware error (e.g. `values[1] must be a positive number (> 0), got 0`).
+- Valid positive prices guarantee that volatility and regime calculations will never emit silent `NaN` or `-Infinity` values.
+
 ## Volume
 
 ```ts

@@ -12,6 +12,10 @@
 * **performance:** export `sumPeriodicReturns` and support `{ mode: "sum" }` in `percentReturn` for explicit arithmetic returns summation ([#27](https://github.com/TDamiao/ta-crypto/issues/27)).
 * **types:** add `PercentReturnMode` and `PercentReturnOptions` ([#27](https://github.com/TDamiao/ta-crypto/issues/27)).
 
+### Bug Fixes
+
+* **performance:** reject non-positive prices ($\le 0$) and non-finite values in `logReturn`, `realizedVolatility`, and `volatilityRegime` with index-aware errors ([#28](https://github.com/TDamiao/ta-crypto/issues/28)).
+
 ## [0.3.4](https://github.com/TDamiao/ta-crypto/compare/v0.3.3...v0.3.4) (2026-07-21)
 
 

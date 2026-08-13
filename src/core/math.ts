@@ -10,6 +10,17 @@ export function assertFiniteSeries(name: string, values: number[]): void {
   }
 }
 
+export function assertPositiveSeries(name: string, values: number[]): void {
+  for (let i = 0; i < values.length; i++) {
+    if (!isNum(values[i])) {
+      throw new Error(`${name}[${i}] must be a finite number`);
+    }
+    if (values[i] <= 0) {
+      throw new Error(`${name}[${i}] must be a positive number (> 0), got ${values[i]}`);
+    }
+  }
+}
+
 export function assertSameLength(...series: number[][]): void {
   if (series.length === 0) return;
   const len = series[0].length;
