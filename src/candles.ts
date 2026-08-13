@@ -1,4 +1,4 @@
-import { assertFiniteSeries, assertSameLength, isNum } from "./core/math.js";
+import { assertFiniteSeries, assertNonNegativeSeries, assertSameLength, isNum } from "./core/math.js";
 import type { Candle, OHLCV, OHLCVInput, PriceInput, TimeValue } from "./types.js";
 
 function readField(candle: Candle, index: number, name: string, alias: string): number {
@@ -58,19 +58,32 @@ export function pluckVolume(candles: Candle[], fallback = 0): number[] {
   if (!isNum(fallback)) {
     throw new Error("volumeFallback must be a finite number");
   }
+  if (fallback < 0) {
+    throw new Error(`volumeFallback must be a non-negative number (>= 0), got ${fallback}`);
+  }
   const out = candles.map((candle, index) => {
     const value = (candle as Record<string, unknown>).volume ?? (candle as Record<string, unknown>).v;
     const normalized = value === undefined ? fallback : value;
     if (!isNum(normalized)) {
       throw new Error(`candles[${index}].volume (or .v) must be a finite number`);
     }
+    if (normalized < 0) {
+      throw new Error(`candles[${index}].volume (or .v) must be a non-negative number (>= 0), got ${normalized}`);
+    }
     return normalized;
   });
-  assertFiniteSeries("volume", out);
+  assertNonNegativeSeries("volume", out);
   return out;
 }
 
 export function toOHLCV(input: Candle[] | OHLCVInput, volumeFallback = 0): OHLCV {
+  if (!isNum(volumeFallback)) {
+    throw new Error("volumeFallback must be a finite number");
+  }
+  if (volumeFallback < 0) {
+    throw new Error(`volumeFallback must be a non-negative number (>= 0), got ${volumeFallback}`);
+  }
+
   if (Array.isArray(input)) {
     return {
       open: pluckOpen(input),
@@ -88,7 +101,7 @@ export function toOHLCV(input: Candle[] | OHLCVInput, volumeFallback = 0): OHLCV
     assertFiniteSeries("low", input.low);
     assertFiniteSeries("close", input.close);
     const volume = input.volume ?? new Array(input.close.length).fill(volumeFallback);
-    assertFiniteSeries("volume", volume);
+    assertNonNegativeSeries("volume", volume);
     assertSameLength(input.open, input.high, input.low, input.close, volume);
     const time = input.time ?? new Array(input.close.length).fill(undefined);
     if (time.length !== input.close.length) {
@@ -102,7 +115,7 @@ export function toOHLCV(input: Candle[] | OHLCVInput, volumeFallback = 0): OHLCV
   assertFiniteSeries("low", input.l);
   assertFiniteSeries("close", input.c);
   const volume = input.v ?? new Array(input.c.length).fill(volumeFallback);
-  assertFiniteSeries("volume", volume);
+  assertNonNegativeSeries("volume", volume);
   assertSameLength(input.o, input.h, input.l, input.c, volume);
   const time = input.t ?? new Array(input.c.length).fill(undefined);
   if (time.length !== input.c.length) {

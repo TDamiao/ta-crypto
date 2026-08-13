@@ -92,11 +92,14 @@ The normalized result has this shape:
 }
 ```
 
-## Missing volume
+## Missing volume and validation
 
-`volume` and `v` are optional in candle and OHLCV object inputs. `toOHLCV` uses the supplied fallback, which defaults to `0`. APIs that normalize candle objects therefore see missing volume as zero.
+`volume` and `v` are optional in candle and OHLCV object inputs. `toOHLCV` and `pluckVolume` use the supplied fallback, which defaults to `0`. APIs that normalize candle objects therefore see missing volume as zero.
 
-For volume-dependent calculations, pass volume explicitly when zero is not the intended meaning. The project is tracking a more explicit cross-API policy in [issue #30](https://github.com/TDamiao/ta-crypto/issues/30).
+Starting in v0.4, all volume inputs and fallback parameters are strictly validated:
+- Volume must be a finite non-negative number (`volume >= 0`).
+- `volumeFallback` must be a finite non-negative number (`volumeFallback >= 0`).
+- Negative volume, `NaN`, `Infinity`, and `-Infinity` are rejected with descriptive, index-aware error messages.
 
 ## Validation in v0.3.4
 

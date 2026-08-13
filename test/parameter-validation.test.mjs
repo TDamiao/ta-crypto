@@ -21,6 +21,8 @@ import {
   realizedVolatility,
   volatilityRegime,
   fundingRateAPR,
+  pluckVolume,
+  toOHLCV,
   createSMA,
   createEMA,
   createRSI,
@@ -218,5 +220,31 @@ test("volume-dependent indicators accept zero volume and reject negative/non-fin
   );
   assert.doesNotThrow(
     () => session.next({ high: 102, low: 98, close: 100, volume: 0, sessionId: "s1" })
+  );
+
+  // 5. Candle helpers (pluckVolume, toOHLCV) validation
+  assert.throws(
+    () => pluckVolume([{ open: 100, high: 105, low: 95, close: 100, volume: -5 }]),
+    /candles\[0\]\.volume \(or \.v\) must be a non-negative number \(>= 0\), got -5/
+  );
+  assert.throws(
+    () => toOHLCV([{ o: 100, h: 105, l: 95, c: 100, v: -5 }]),
+    /candles\[0\]\.volume \(or \.v\) must be a non-negative number \(>= 0\), got -5/
+  );
+  assert.throws(
+    () => toOHLCV({ open: [100], high: [105], low: [95], close: [100], volume: [-5] }),
+    /volume\[0\] must be a non-negative number \(>= 0\), got -5/
+  );
+  assert.throws(
+    () => toOHLCV({ o: [100], h: [105], l: [95], c: [100], v: [-5] }),
+    /volume\[0\] must be a non-negative number \(>= 0\), got -5/
+  );
+  assert.throws(
+    () => pluckVolume([{ open: 100, high: 105, low: 95, close: 100 }], -1),
+    /volumeFallback must be a non-negative number \(>= 0\), got -1/
+  );
+  assert.throws(
+    () => toOHLCV([{ o: 100, h: 105, l: 95, c: 100 }], -1),
+    /volumeFallback must be a non-negative number \(>= 0\), got -1/
   );
 });
