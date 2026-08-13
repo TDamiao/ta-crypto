@@ -54,8 +54,9 @@
     "example:rsi": "npm run build && node ./examples/rsi-strategy.mjs",
     "example:vwap": "npm run build && node ./examples/vwap-session.mjs",
     "example:funding": "npm run build && node ./examples/funding-arbitrage.mjs",
+    "example:returns": "npm run build && node ./examples/returns-compounding.mjs",
     "example:rsi:compat": "npm run build && node ./examples/rsi-technicalindicators-check.mjs",
-    "example:all": "npm run example:rsi && npm run example:vwap && npm run example:funding && npm run example:rsi:compat"
+    "example:all": "npm run example:rsi && npm run example:vwap && npm run example:funding && npm run example:returns && npm run example:rsi:compat"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",

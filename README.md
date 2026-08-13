@@ -87,9 +87,9 @@ See [Stateful API](docs/stateful.md) for warmup, parity, and reset behavior.
 
 These items remain roadmap work and must not be treated as current package capabilities.
 
-## Known behavior in v0.3.4
+## Known behavior in v0.4
 
-- `percentReturn(values, true)` currently sums periodic simple returns. A controlled breaking correction to compounded cumulative semantics is planned for v0.4 in [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
+- `percentReturn(values, { cumulative: true })` compounds cumulative return from the initial price ([issue #27](https://github.com/TDamiao/ta-crypto/issues/27)). Arithmetic sum of periodic returns is available via `sumPeriodicReturns(values)` or `{ mode: "sum" }`. The deprecated boolean signature is supported with compound semantics during the v0.4 migration window.
 - `logReturn` does not yet reject zero or negative prices; see [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
 - NATR does not yet reject zero or negative closing prices; see [issue #29](https://github.com/TDamiao/ta-crypto/issues/29).
 - Period validation is not yet uniform across every API; see [issue #30](https://github.com/TDamiao/ta-crypto/issues/30).

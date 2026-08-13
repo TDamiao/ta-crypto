@@ -8,6 +8,7 @@ All examples are runnable from the repository root and use local `dist/` outputs
 npm run example:rsi
 npm run example:vwap
 npm run example:funding
+npm run example:returns
 npm run example:rsi:compat
 npm run example:all
 ```
@@ -23,6 +24,9 @@ npm run example:all
 - `example:funding`
   - Prints funding series, cumulative values, and annualized APR values.
   - Cumulative is running sum; APR is scaled by `periodsPerYear * 100`.
+- `example:returns`
+  - Prints periodic, compound cumulative, and arithmetic sum returns for `[100, 110, 121]`.
+  - Demonstrates periodic (10%/10%), compounded cumulative (21%), and arithmetic sum (20%).
 - `example:rsi:compat`
   - Compares `rsi(14)` against `technicalindicators` RSI reference.
   - Prints max diff, tolerance, and `PASS`/`FAIL`.

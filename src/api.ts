@@ -1,4 +1,4 @@
-import type { Candle, OHLCVInput, PriceInput } from "./types.js";
+import type { Candle, OHLCVInput, PercentReturnOptions, PriceInput } from "./types.js";
 import { assertFiniteSeries } from "./core/math.js";
 import { normalizePrice, toOHLCV } from "./candles.js";
 import {
@@ -16,6 +16,7 @@ import { trueRange as coreTrueRange, atr as coreAtr, natr as coreNatr } from "./
 import {
   logReturn as coreLogReturn,
   percentReturn as corePercentReturn,
+  sumPeriodicReturns as coreSumPeriodicReturns,
   realizedVolatility as coreRealizedVolatility
 } from "./core/performance.js";
 import { obv as coreObv, mfi as coreMfi } from "./core/volume.js";
@@ -123,8 +124,26 @@ export function logReturn(input: PriceInput, cumulative = false): Array<number |
   return coreLogReturn(normalizePrice(input), cumulative);
 }
 
-export function percentReturn(input: PriceInput, cumulative = false): Array<number | null> {
-  return corePercentReturn(normalizePrice(input), cumulative);
+export function percentReturn(
+  input: PriceInput,
+  options?: PercentReturnOptions
+): Array<number | null>;
+/**
+ * @deprecated Passing a boolean to percentReturn is deprecated as of v0.4.0 and will be removed in a future major version. Use `{ cumulative: true }` (for compound cumulative) or `{ mode: "sum" }` (for arithmetic sum), or `sumPeriodicReturns()`.
+ */
+export function percentReturn(
+  input: PriceInput,
+  cumulative?: boolean
+): Array<number | null>;
+export function percentReturn(
+  input: PriceInput,
+  optionsOrCumulative?: PercentReturnOptions | boolean
+): Array<number | null> {
+  return corePercentReturn(normalizePrice(input), optionsOrCumulative);
+}
+
+export function sumPeriodicReturns(input: PriceInput): Array<number | null> {
+  return coreSumPeriodicReturns(normalizePrice(input));
 }
 
 export function realizedVolatility(input: PriceInput, length = 30, periodsPerYear = 365): Array<number | null> {

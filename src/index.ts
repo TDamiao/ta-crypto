@@ -15,6 +15,7 @@ export {
   natr,
   logReturn,
   percentReturn,
+  sumPeriodicReturns,
   realizedVolatility,
   obv,
   mfi,

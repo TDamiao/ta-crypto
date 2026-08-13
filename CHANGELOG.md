@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Breaking Changes
+
+* **performance:** correct cumulative `percentReturn` to use compounded returns ($P_t / P_0 - 1$) instead of arithmetic summation ([#27](https://github.com/TDamiao/ta-crypto/issues/27)).
+* **performance:** deprecate boolean argument in `percentReturn(values, cumulative)` in favor of options object `{ cumulative: true }`, `{ mode: "compound" }`, or explicit `sumPeriodicReturns` function ([#27](https://github.com/TDamiao/ta-crypto/issues/27)).
+
+### Features
+
+* **performance:** export `sumPeriodicReturns` and support `{ mode: "sum" }` in `percentReturn` for explicit arithmetic returns summation ([#27](https://github.com/TDamiao/ta-crypto/issues/27)).
+* **types:** add `PercentReturnMode` and `PercentReturnOptions` ([#27](https://github.com/TDamiao/ta-crypto/issues/27)).
+
 ## [0.3.4](https://github.com/TDamiao/ta-crypto/compare/v0.3.3...v0.3.4) (2026-07-21)
 
 

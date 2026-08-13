@@ -42,7 +42,8 @@ const trend = adx(high, low, close, 14);
 | `atr` | 14 | `period - 1` | RMA of true range. |
 | `natr` | 14 | `period - 1` | `ATR / close * 100`; see domain warning below. |
 | `logReturn` | cumulative false | `1` | Natural log of consecutive price ratios. |
-| `percentReturn` | cumulative false | `1` | Consecutive simple return. |
+| `percentReturn` | cumulative false | `1` | Consecutive simple return (periodic) or compounded cumulative return. |
+| `sumPeriodicReturns` | none | `1` | Arithmetic sum of periodic simple returns. |
 | `realizedVolatility` | 30, 365 | `period` | Population deviation of log returns, annualized by square root. |
 | `obv` | none | `0` | Starts at zero. |
 | `mfi` | 14 | `period` | Needs a previous typical price plus a full flow window. |
@@ -80,22 +81,49 @@ In v0.3.4, NATR does not reject zero or negative closes before division. Validat
 ## Returns
 
 ```ts
-import { logReturn, percentReturn } from "ta-crypto/indicators";
+import { logReturn, percentReturn, sumPeriodicReturns } from "ta-crypto/indicators";
 
+// Periodic simple returns (values[i] / values[i-1] - 1)
+const periodicSimple = percentReturn(close);
+const periodicExplicit = percentReturn(close, { mode: "periodic" });
+
+// Compounded cumulative return (values[i] / values[0] - 1)
+const cumulativeCompound = percentReturn(close, { cumulative: true });
+const cumulativeMode = percentReturn(close, { mode: "compound" });
+
+// Arithmetic summation of periodic returns (r_1 + r_2 + ... + r_i)
+const arithmeticSum = percentReturn(close, { mode: "sum" });
+const explicitSum = sumPeriodicReturns(close);
+
+// Log returns
 const periodicLog = logReturn(close);
 const cumulativeLog = logReturn(close, true);
-const periodicSimple = percentReturn(close);
-const currentArithmeticSum = percentReturn(close, true);
 ```
 
-Important current-version behavior:
+### Cumulative Return Semantics & Migration Guide
 
-- `logReturn(values, true)` sums log returns, which is equivalent to a cumulative log return for valid positive prices.
-- `percentReturn(values, true)` in v0.3.4 sums periodic simple returns. It does not compound them.
-- v0.4 will make cumulative percent return compound and move arithmetic summation to an explicit API or mode. The boolean signature will be deprecated. See [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
-- `logReturn` does not yet enforce strictly positive prices. Validate them before calling it; see [issue #28](https://github.com/TDamiao/ta-crypto/issues/28).
+Starting in v0.4, cumulative simple returns follow standard financial compounding semantics:
 
-For `[100, 110, 121]`, the two 10% periodic returns sum to 20%, while the compounded cumulative return is 21%. v0.3.4's `percentReturn(values, true)` returns the arithmetic 20% path.
+- `percentReturn(values, { cumulative: true })` or `percentReturn(values, { mode: "compound" })` calculates compounded cumulative return ($P_t / P_0 - 1$).
+- `sumPeriodicReturns(values)` or `percentReturn(values, { mode: "sum" })` calculates arithmetic summation ($\sum r_i$).
+- `logReturn(values, true)` calculates cumulative log returns ($\sum \ln(P_t / P_{t-1}) = \ln(P_t / P_0)$).
+
+#### Numerical Example
+
+For prices `[100, 110, 121]`:
+- **Periodic returns**: `[null, 0.10, 0.10]` (+10% and +10%)
+- **Compounded cumulative return**: `[null, 0.10, 0.21]` (+21% total return: $(1+0.10)(1+0.10) - 1 = 0.21$)
+- **Arithmetic sum of returns**: `[null, 0.10, 0.20]` (+20% sum: $0.10 + 0.10 = 0.20$)
+
+#### Deprecation & Migration Path
+
+| Old Signature (v0.3.4) | New Equivalent API (v0.4+) | Semantics |
+| --- | --- | --- |
+| `percentReturn(prices, false)` | `percentReturn(prices)` or `percentReturn(prices, { mode: "periodic" })` | Periodic simple return |
+| `percentReturn(prices, true)` *(arithmetic in v0.3.4)* | `percentReturn(prices, { cumulative: true })` or `{ mode: "compound" }` | **Compounded cumulative return** (breaking correction) |
+| `percentReturn(prices, true)` *(if arithmetic sum needed)* | `sumPeriodicReturns(prices)` or `percentReturn(prices, { mode: "sum" })` | Arithmetic summation |
+
+> **API Lifecycle Notice**: Passing a boolean argument (`cumulative: boolean`) to `percentReturn` is **deprecated** in v0.4. During the v0.4 migration window, passing `true` invokes compounded cumulative return. The boolean signature is scheduled for complete removal in `v1.0.0`.
 
 ## Volume
 

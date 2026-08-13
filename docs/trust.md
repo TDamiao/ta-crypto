@@ -78,7 +78,7 @@ npm Trusted Publishing, provenance, and SBOM work is tracked in [issue #41](http
 
 - Some external libraries use different warmup and initialization conventions.
 - External compatibility currently covers a subset of exported indicators and fixtures.
-- `percentReturn(values, true)` has arithmetic-sum semantics in v0.3.4; the approved v0.4 correction is tracked in [issue #27](https://github.com/TDamiao/ta-crypto/issues/27).
+- `percentReturn(values, { cumulative: true })` compounds cumulative return in v0.4 ([issue #27](https://github.com/TDamiao/ta-crypto/issues/27)). Arithmetic summation is available via `sumPeriodicReturns` or `{ mode: "sum" }`. The deprecated boolean signature is supported with compound semantics during the v0.4 migration window.
 - Log-return and NATR financial-domain validation is being hardened in [#28](https://github.com/TDamiao/ta-crypto/issues/28) and [#29](https://github.com/TDamiao/ta-crypto/issues/29).
 - Candle-derived orderflow functions are not L2/L3 order-book analytics.
 - Backtesting, built-in strategies, screeners, broad adapters, resampling, and complete multi-timeframe support are not current features.
