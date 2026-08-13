@@ -10,9 +10,12 @@ import {
   stoch,
   atr,
   natr,
+  obv,
   mfi,
   adx,
   vwap,
+  vwapSession,
+  signedVolume,
   volumeDelta,
   orderflowImbalance,
   realizedVolatility,
@@ -20,7 +23,8 @@ import {
   fundingRateAPR,
   createSMA,
   createEMA,
-  createRSI
+  createRSI,
+  createVWAPSession
 } from "../dist/index.js";
 
 const close = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110];
@@ -140,4 +144,79 @@ test("empty array input produces empty array or empty structure across all indic
   assert.deepEqual(emptyADX.adx, []);
   assert.deepEqual(emptyADX.plusDI, []);
   assert.deepEqual(emptyADX.minusDI, []);
+});
+
+test("volume-dependent indicators accept zero volume and reject negative/non-finite volume", () => {
+  const c = [100, 101, 102];
+  const h = [102, 103, 104];
+  const l = [98, 99, 100];
+  const o = [99, 100, 101];
+  const sessions = ["s1", "s1", "s1"];
+
+  const zeroVol = [0, 0, 0];
+  const validVol = [10, 0, 20];
+  const negVol = [10, -5, 20];
+  const nanVol = [10, Number.NaN, 20];
+  const infVol = [10, Number.POSITIVE_INFINITY, 20];
+  const negInfVol = [10, Number.NEGATIVE_INFINITY, 20];
+
+  // 1. Zero volume is valid
+  assert.doesNotThrow(() => obv(c, zeroVol));
+  assert.doesNotThrow(() => mfi(h, l, c, zeroVol, 2));
+  assert.doesNotThrow(() => vwap(h, l, c, zeroVol));
+  assert.doesNotThrow(() => vwap(h, l, c, zeroVol, 2));
+  assert.doesNotThrow(() => vwapSession(h, l, c, zeroVol, sessions));
+  assert.doesNotThrow(() => signedVolume(o, c, zeroVol));
+  assert.doesNotThrow(() => volumeDelta(o, c, zeroVol, 2));
+  assert.doesNotThrow(() => orderflowImbalance(o, c, zeroVol, 2));
+
+  // 2. Negative volume throws index-aware error
+  const volIndicators = [
+    { name: "obv", fn: () => obv(c, negVol) },
+    { name: "mfi", fn: () => mfi(h, l, c, negVol, 2) },
+    { name: "vwap cumulative", fn: () => vwap(h, l, c, negVol) },
+    { name: "vwap periodic", fn: () => vwap(h, l, c, negVol, 2) },
+    { name: "vwapSession", fn: () => vwapSession(h, l, c, negVol, sessions) },
+    { name: "signedVolume", fn: () => signedVolume(o, c, negVol) },
+    { name: "volumeDelta", fn: () => volumeDelta(o, c, negVol, 2) },
+    { name: "orderflowImbalance", fn: () => orderflowImbalance(o, c, negVol, 2) }
+  ];
+
+  for (const { name, fn } of volIndicators) {
+    assert.throws(
+      () => fn(),
+      /volume\[1\] must be a non-negative number \(>= 0\), got -5/,
+      `${name} did not reject negative volume with index-aware error`
+    );
+  }
+
+  // 3. NaN and Infinity volume throw finite number error
+  for (const badVol of [nanVol, infVol, negInfVol]) {
+    for (const { name, fn } of [
+      { name: "obv", fn: () => obv(c, badVol) },
+      { name: "mfi", fn: () => mfi(h, l, c, badVol, 2) },
+      { name: "vwap", fn: () => vwap(h, l, c, badVol) },
+      { name: "signedVolume", fn: () => signedVolume(o, c, badVol) }
+    ]) {
+      assert.throws(
+        () => fn(),
+        /volume\[1\] must be a finite number/,
+        `${name} did not reject non-finite volume`
+      );
+    }
+  }
+
+  // 4. Stateful createVWAPSession validation
+  const session = createVWAPSession();
+  assert.throws(
+    () => session.next({ high: 102, low: 98, close: 100, volume: -10, sessionId: "s1" }),
+    /volume must be a non-negative number \(>= 0\)/
+  );
+  assert.throws(
+    () => session.next({ high: 102, low: 98, close: 100, volume: Number.NaN, sessionId: "s1" }),
+    /must be finite numbers/
+  );
+  assert.doesNotThrow(
+    () => session.next({ high: 102, low: 98, close: 100, volume: 0, sessionId: "s1" })
+  );
 });

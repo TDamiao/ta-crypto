@@ -1,4 +1,4 @@
-import { assertPositiveInteger, assertSameLength, isNum, makeSeries, mean } from "./math.js";
+import { assertNonNegativeSeries, assertPositiveInteger, assertSameLength, isNum, makeSeries, mean } from "./math.js";
 import { rollingMean, rollingMeanStdDev } from "./rolling.js";
 
 export function sma(values: number[], length = 14): Array<number | null> {
@@ -68,6 +68,7 @@ export function vwap(
   length?: number
 ): Array<number | null> {
   assertSameLength(high, low, close, volume);
+  assertNonNegativeSeries("volume", volume);
   if (length !== undefined) {
     assertPositiveInteger("length", length);
   }

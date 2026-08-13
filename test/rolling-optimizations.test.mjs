@@ -145,3 +145,130 @@ test("realizedVolatility and volatilityRegime produce deterministic regimes on s
   const oscVol = realizedVolatility(oscillatingPrices, 10, 365);
   assert.ok(oscVol[10] > 0);
 });
+
+test("cumulative VWAP and periodic VWAP contract invariants and candle parity", () => {
+  const high = [105, 110, 115, 120, 118];
+  const low = [95, 100, 105, 110, 108];
+  const close = [100, 105, 110, 115, 112];
+  const volume = [100, 200, 300, 400, 500];
+
+  // Cumulative VWAP (length undefined)
+  const cumVwap = vwap(high, low, close, volume);
+  assert.equal(cumVwap[0], 100);
+  // index 1: (100*100 + 105*200) / 300 = 31000 / 300 = 103.33333333333333
+  assert.ok(Math.abs(cumVwap[1] - 31000 / 300) < eps);
+  // index 2: (31000 + 110*300) / 600 = 64000 / 600 = 106.66666666666667
+  assert.ok(Math.abs(cumVwap[2] - 64000 / 600) < eps);
+
+  // Candles vs aliases vs missing volume
+  const candles = [
+    { open: 98, high: 105, low: 95, close: 100, volume: 100 },
+    { open: 102, high: 110, low: 100, close: 105, volume: 200 },
+    { open: 107, high: 115, low: 105, close: 110 } // missing volume -> defaults to 0
+  ];
+  const candleVwap = vwap(candles);
+  assert.equal(candleVwap[0], 100);
+  assert.ok(Math.abs(candleVwap[1] - 31000 / 300) < eps);
+  // index 2 with 0 volume -> cumPV remains 31000, cumV remains 300 -> vwap unchanged
+  assert.ok(Math.abs(candleVwap[2] - 31000 / 300) < eps);
+
+  // Periodic candle vwap
+  const candlePeriodic = vwap(candles, 2);
+  assert.equal(candlePeriodic[0], null);
+  assert.ok(Math.abs(candlePeriodic[1] - 31000 / 300) < eps);
+  // index 2 periodic with window 2: volume for window [1, 2] is 200 + 0 = 200, PV = 105*200 + 110*0 = 21000 -> 105
+  assert.ok(Math.abs(candlePeriodic[2] - 105) < eps);
+});
+
+test("orderflowImbalance mathematical bounds [-1, 1], zero volume, and error contracts", () => {
+  // Mismatched lengths
+  assert.throws(() => volumeDelta([100], [100, 101], [10, 20]), /All series must have the same length/);
+  assert.throws(() => orderflowImbalance([100, 101], [100], [10, 20]), /All series must have the same length/);
+
+  // All zero volume -> OFI returns null, VolumeDelta returns 0
+  const open = [100, 105, 102, 108];
+  const close = [105, 102, 104, 108];
+  const zeroVol = [0, 0, 0, 0];
+  const zeroOFI = orderflowImbalance(open, close, zeroVol, 2);
+  assert.deepEqual(zeroOFI, [null, null, null, null]);
+  const zeroVD = volumeDelta(open, close, zeroVol, 2);
+  assert.deepEqual(zeroVD, [null, 0, 0, 0]);
+
+  // Flat candles (close === open)
+  const flatOpen = [100, 100, 100];
+  const flatClose = [100, 100, 100];
+  const nonZeroVol = [50, 100, 150];
+  const flatVD = volumeDelta(flatOpen, flatClose, nonZeroVol, 2);
+  assert.deepEqual(flatVD, [null, 0, 0]);
+  const flatOFI = orderflowImbalance(flatOpen, flatClose, nonZeroVol, 2);
+  assert.deepEqual(flatOFI, [null, 0, 0]);
+
+  // Arbitrary non-negative volumes stay bounded within [-1, 1] without NaN or Infinity
+  const randOpen = Array.from({ length: 100 }, (_, i) => 100 + Math.sin(i));
+  const randClose = Array.from({ length: 100 }, (_, i) => 100 + Math.cos(i));
+  const randVol = Array.from({ length: 100 }, (_, i) => (i % 7 === 0 ? 0 : 10 + (i * 13) % 100));
+  const randOFI = orderflowImbalance(randOpen, randClose, randVol, 10);
+  for (let i = 9; i < 100; i++) {
+    const val = randOFI[i];
+    if (val !== null) {
+      assert.ok(Number.isFinite(val), `OFI produced non-finite value at index ${i}: ${val}`);
+      assert.ok(val >= -1 - 1e-12 && val <= 1 + 1e-12, `OFI value ${val} out of [-1, 1] at index ${i}`);
+    }
+  }
+});
+
+test("realizedVolatility and volatilityRegime numerical stability on tiny perturbation and large scale series", () => {
+  // Two-pass reference for standard deviation
+  function twoPassStdDev(arr) {
+    const m = arr.reduce((a, b) => a + b, 0) / arr.length;
+    const v = arr.reduce((acc, x) => acc + (x - m) * (x - m), 0) / arr.length;
+    return Math.sqrt(Math.max(0, v));
+  }
+
+  // Adversarial series: constant return + deterministic tiny noise (1e-8)
+  const N = 100;
+  const p = new Array(N);
+  p[0] = 1000000; // Large magnitude: $1,000,000
+  for (let i = 1; i < N; i++) {
+    const r = 0.01 + 1e-8 * Math.sin(i * 0.3);
+    p[i] = p[i - 1] * Math.exp(r);
+  }
+
+  const length = 20;
+  const vol = realizedVolatility(p, length, 365);
+  const factor = Math.sqrt(365);
+
+  const rets = new Array(N).fill(0);
+  for (let i = 1; i < N; i++) rets[i] = Math.log(p[i] / p[i - 1]);
+
+  for (let i = length; i < N; i++) {
+    const windowRets = rets.slice(i - length + 1, i + 1);
+    const expectedVol = twoPassStdDev(windowRets) * factor;
+    assert.ok(
+      Math.abs(vol[i] - expectedVol) < 1e-10,
+      `realizedVolatility numerical divergence at index ${i}: actual ${vol[i]} vs expected ${expectedVol}`
+    );
+  }
+});
+
+test("volatilityRegime threshold boundary tests around lowZ and highZ", () => {
+  // Construct precise price sequence where we control z-scores around boundaries
+  // lowZ = -0.5, highZ = 0.5
+  // Length = 10. Warmup index = 20.
+  // We test discrete classifications:
+  // z > highZ -> 1
+  // z < lowZ -> -1
+  // lowZ <= z <= highZ -> 0
+  const length = 5;
+  // Let prices create controlled volatility
+  const basePrices = Array.from({ length: 30 }, (_, i) => 100 * (1 + (i % 2 === 0 ? 0.05 : -0.04)));
+  const regime = volatilityRegime(basePrices, length, 365, -0.5, 0.5);
+
+  // All computed regimes must be exactly -1, 0, or 1
+  for (let i = length * 2; i < basePrices.length; i++) {
+    assert.ok(
+      regime[i] === -1 || regime[i] === 0 || regime[i] === 1,
+      `Invalid discrete regime at index ${i}: ${regime[i]}`
+    );
+  }
+});

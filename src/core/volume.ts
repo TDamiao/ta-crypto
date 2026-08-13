@@ -1,7 +1,8 @@
-import { assertPositiveInteger, assertSameLength, makeSeries } from "./math.js";
+import { assertNonNegativeSeries, assertPositiveInteger, assertSameLength, makeSeries } from "./math.js";
 
 export function obv(close: number[], volume: number[]): Array<number | null> {
   assertSameLength(close, volume);
+  assertNonNegativeSeries("volume", volume);
   const out = makeSeries(close.length);
   let acc = 0;
   for (let i = 0; i < close.length; i++) {
@@ -25,6 +26,7 @@ export function mfi(
 ): Array<number | null> {
   assertSameLength(high, low, close, volume);
   assertPositiveInteger("length", length);
+  assertNonNegativeSeries("volume", volume);
   const len = close.length;
   const out = makeSeries(len);
   if (len <= length) return out;

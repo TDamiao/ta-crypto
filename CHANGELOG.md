@@ -14,17 +14,19 @@
 
 ### Bug Fixes
 
-* **performance:** reject non-positive prices ($\le 0$) and non-finite values in `logReturn`, `realizedVolatility`, and `volatilityRegime` with index-aware errors ([#28](https://github.com/TDamiao/ta-crypto/issues/28)).
+* **performance:** reject non-positive prices ($\le 0$) and non-finite values in `logReturn`, `realizedVolatility`, `volatilityRegime`, `percentReturn`, and `sumPeriodicReturns` with index-aware errors ([#27](https://github.com/TDamiao/ta-crypto/issues/27), [#28](https://github.com/TDamiao/ta-crypto/issues/28)).
 * **volatility:** reject non-positive close prices ($\le 0$) in `natr` with index-aware errors ([#29](https://github.com/TDamiao/ta-crypto/issues/29)).
-* **core:** standardize positive-integer period validation across all batch indicators and stateful constructors ([#30](https://github.com/TDamiao/ta-crypto/issues/30)).
+* **core:** standardize positive-integer period validation and non-negative volume ($\ge 0$) domain validation across all indicators ([#30](https://github.com/TDamiao/ta-crypto/issues/30), [#33](https://github.com/TDamiao/ta-crypto/issues/33)).
+* **core:** enforce numerically stable sliding Welford recurrence for rolling variance in `RollingStdDev`, `realizedVolatility`, and `volatilityRegime` preventing catastrophic cancellation ([#34](https://github.com/TDamiao/ta-crypto/issues/34)).
 
 ### Performance Improvements
 
-* **volume:** optimize `mfi` with single-pass circular buffer rolling flow sums ([#31](https://github.com/TDamiao/ta-crypto/issues/31)).
-* **overlap:** optimize periodic `vwap` with $O(1)$ memory rolling price-volume and volume accumulators ([#32](https://github.com/TDamiao/ta-crypto/issues/32)).
+* **volume:** optimize `mfi` with single-pass circular buffer rolling flow sums ($O(N)$ time, $O(\text{period})$ memory) ([#31](https://github.com/TDamiao/ta-crypto/issues/31)).
+* **overlap:** optimize periodic `vwap` with circular buffer rolling price-volume and volume accumulators ($O(N)$ time, $O(\text{period})$ memory) ([#32](https://github.com/TDamiao/ta-crypto/issues/32)).
 * **crypto:** optimize `volumeDelta` and `orderflowImbalance` with single-pass rolling signed and total volume sums ([#33](https://github.com/TDamiao/ta-crypto/issues/33)).
-* **crypto:** remove repeated window slicing from `volatilityRegime` and optimize `realizedVolatility` with $O(n)$ rolling variance ([#34](https://github.com/TDamiao/ta-crypto/issues/34)).
+* **crypto:** remove repeated window slicing from `volatilityRegime` and optimize `realizedVolatility` with $O(N)$ rolling variance ([#34](https://github.com/TDamiao/ta-crypto/issues/34)).
 * **core:** optimize `makeSeries` with fast array fill allocation.
+* **bench:** add legacy-vs-rolling parity gate in `scripts/bench-rolling.js`.
 
 ## [0.3.4](https://github.com/TDamiao/ta-crypto/compare/v0.3.3...v0.3.4) (2026-07-21)
 

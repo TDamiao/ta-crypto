@@ -137,6 +137,9 @@ export function createVWAPSession(): StatefulIndicator<VWAPSessionInput, number 
       if (!Number.isFinite(high) || !Number.isFinite(low) || !Number.isFinite(close) || !Number.isFinite(volume)) {
         throw new Error("high, low, close and volume must be finite numbers");
       }
+      if (volume < 0) {
+        throw new Error("volume must be a non-negative number (>= 0)");
+      }
 
       if (lastSession !== sessionId) {
         cumPV = 0;

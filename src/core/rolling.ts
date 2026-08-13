@@ -94,8 +94,8 @@ export class RollingMean {
 export class RollingStdDev {
   readonly period: number;
   private readonly window: RollingWindow;
-  private total = 0;
-  private totalSquares = 0;
+  private mean = 0;
+  private M2 = 0;
 
   constructor(period: number) {
     assertPeriod(period);
@@ -104,20 +104,29 @@ export class RollingStdDev {
   }
 
   next(value: number): RollingValue {
+    assertValue(value);
+    const wasReady = this.window.ready;
     const removed = this.window.push(value);
-    this.total += value - (removed ?? 0);
-    this.totalSquares += value * value - (removed === null ? 0 : removed * removed);
+    if (!wasReady) {
+      const count = this.window.size;
+      const delta = value - this.mean;
+      this.mean += delta / count;
+      const delta2 = value - this.mean;
+      this.M2 += delta * delta2;
+    } else if (removed !== null) {
+      const oldMean = this.mean;
+      this.mean = oldMean + (value - removed) / this.period;
+      this.M2 += (value - removed) * (value - this.mean + removed - oldMean);
+      if (this.M2 < 0) this.M2 = 0;
+    }
     if (!this.window.ready) return null;
-
-    const mean = this.total / this.period;
-    const variance = Math.max(0, this.totalSquares / this.period - mean * mean);
-    return Math.sqrt(variance);
+    return Math.sqrt(Math.max(0, this.M2 / this.period));
   }
 
   reset(): void {
     this.window.reset();
-    this.total = 0;
-    this.totalSquares = 0;
+    this.mean = 0;
+    this.M2 = 0;
   }
 }
 
@@ -203,21 +212,30 @@ export function rollingMean(values: number[], period: number): RollingValue[] {
 export function rollingStdDev(values: number[], period: number): RollingValue[] {
   assertPeriod(period);
   const out = new Array<RollingValue>(values.length).fill(null);
-  let total = 0;
-  let totalSquares = 0;
-  for (let i = 0; i < values.length; i++) {
+  if (values.length < period) return out;
+
+  let mean = 0;
+  let M2 = 0;
+  for (let i = 0; i < period; i++) {
     const value = values[i];
-    total += value;
-    totalSquares += value * value;
-    if (i >= period) {
-      const removed = values[i - period];
-      total -= removed;
-      totalSquares -= removed * removed;
-    }
-    if (i >= period - 1) {
-      const mean = total / period;
-      out[i] = Math.sqrt(Math.max(0, totalSquares / period - mean * mean));
-    }
+    assertValue(value);
+    const count = i + 1;
+    const delta = value - mean;
+    mean += delta / count;
+    const delta2 = value - mean;
+    M2 += delta * delta2;
+  }
+  out[period - 1] = Math.sqrt(Math.max(0, M2 / period));
+
+  for (let i = period; i < values.length; i++) {
+    const vNew = values[i];
+    const vOld = values[i - period];
+    assertValue(vNew);
+    const oldMean = mean;
+    mean = oldMean + (vNew - vOld) / period;
+    M2 += (vNew - vOld) * (vNew - mean + vOld - oldMean);
+    if (M2 < 0) M2 = 0;
+    out[i] = Math.sqrt(Math.max(0, M2 / period));
   }
   return out;
 }
@@ -227,26 +245,36 @@ export function rollingMeanStdDev(
   period: number
 ): { mean: RollingValue[]; stdDev: RollingValue[] } {
   assertPeriod(period);
-  const mean = new Array<RollingValue>(values.length).fill(null);
-  const stdDev = new Array<RollingValue>(values.length).fill(null);
-  let total = 0;
-  let totalSquares = 0;
-  for (let i = 0; i < values.length; i++) {
+  const meanOut = new Array<RollingValue>(values.length).fill(null);
+  const stdDevOut = new Array<RollingValue>(values.length).fill(null);
+  if (values.length < period) return { mean: meanOut, stdDev: stdDevOut };
+
+  let currentMean = 0;
+  let M2 = 0;
+  for (let i = 0; i < period; i++) {
     const value = values[i];
-    total += value;
-    totalSquares += value * value;
-    if (i >= period) {
-      const removed = values[i - period];
-      total -= removed;
-      totalSquares -= removed * removed;
-    }
-    if (i >= period - 1) {
-      const currentMean = total / period;
-      mean[i] = currentMean;
-      stdDev[i] = Math.sqrt(Math.max(0, totalSquares / period - currentMean * currentMean));
-    }
+    assertValue(value);
+    const count = i + 1;
+    const delta = value - currentMean;
+    currentMean += delta / count;
+    const delta2 = value - currentMean;
+    M2 += delta * delta2;
   }
-  return { mean, stdDev };
+  meanOut[period - 1] = currentMean;
+  stdDevOut[period - 1] = Math.sqrt(Math.max(0, M2 / period));
+
+  for (let i = period; i < values.length; i++) {
+    const vNew = values[i];
+    const vOld = values[i - period];
+    assertValue(vNew);
+    const oldMean = currentMean;
+    currentMean = oldMean + (vNew - vOld) / period;
+    M2 += (vNew - vOld) * (vNew - currentMean + vOld - oldMean);
+    if (M2 < 0) M2 = 0;
+    meanOut[i] = currentMean;
+    stdDevOut[i] = Math.sqrt(Math.max(0, M2 / period));
+  }
+  return { mean: meanOut, stdDev: stdDevOut };
 }
 
 export function rollingMin(values: number[], period: number): RollingValue[] {

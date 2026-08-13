@@ -21,6 +21,17 @@ export function assertPositiveSeries(name: string, values: number[]): void {
   }
 }
 
+export function assertNonNegativeSeries(name: string, values: number[]): void {
+  for (let i = 0; i < values.length; i++) {
+    if (!isNum(values[i])) {
+      throw new Error(`${name}[${i}] must be a finite number`);
+    }
+    if (values[i] < 0) {
+      throw new Error(`${name}[${i}] must be a non-negative number (>= 0), got ${values[i]}`);
+    }
+  }
+}
+
 export function assertPositiveInteger(name: string, value: number): void {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer`);

@@ -1,4 +1,10 @@
-import { assertPositiveInteger, assertPositiveSeries, assertSameLength, makeSeries, mean, stdev } from "./math.js";
+import {
+  assertNonNegativeSeries,
+  assertPositiveInteger,
+  assertPositiveSeries,
+  assertSameLength,
+  makeSeries
+} from "./math.js";
 import { hlc3 } from "./overlap.js";
 import { realizedVolatility } from "./performance.js";
 
@@ -10,6 +16,7 @@ export function vwapSession(
   session: Array<string | number>
 ): Array<number | null> {
   assertSameLength(high, low, close, volume);
+  assertNonNegativeSeries("volume", volume);
   if (session.length !== high.length) {
     throw new Error("All series must have the same length");
   }
@@ -71,30 +78,39 @@ export function volatilityRegime(
   const out = makeSeries(len);
   if (len <= length * 2) return out;
 
-  let volSum = 0;
-  let volSumSq = 0;
+  let mean = 0;
+  let M2 = 0;
 
-  for (let i = length + 1; i < len; i++) {
+  for (let i = length + 1; i <= length * 2; i++) {
     const v = vol[i] as number;
-    volSum += v;
-    volSumSq += v * v;
+    const count = i - length;
+    const delta = v - mean;
+    mean += delta / count;
+    const delta2 = v - mean;
+    M2 += delta * delta2;
+  }
 
-    if (i > length * 2) {
-      const removed = vol[i - length] as number;
-      volSum -= removed;
-      volSumSq -= removed * removed;
-    }
+  const s0 = Math.sqrt(Math.max(0, M2 / length));
+  if (s0 <= 1e-12) {
+    out[length * 2] = 0;
+  } else {
+    const z0 = ((vol[length * 2] as number) - mean) / s0;
+    out[length * 2] = z0 > highZ ? 1 : z0 < lowZ ? -1 : 0;
+  }
 
-    if (i >= length * 2) {
-      const m = volSum / length;
-      const variance = Math.max(0, volSumSq / length - m * m);
-      const s = Math.sqrt(variance);
-      if (s === 0) {
-        out[i] = 0;
-      } else {
-        const z = (v - m) / s;
-        out[i] = z > highZ ? 1 : z < lowZ ? -1 : 0;
-      }
+  for (let i = length * 2 + 1; i < len; i++) {
+    const vNew = vol[i] as number;
+    const vOld = vol[i - length] as number;
+    const oldMean = mean;
+    mean = oldMean + (vNew - vOld) / length;
+    M2 += (vNew - vOld) * (vNew - mean + vOld - oldMean);
+    if (M2 < 0) M2 = 0;
+    const s = Math.sqrt(M2 / length);
+    if (s <= 1e-12) {
+      out[i] = 0;
+    } else {
+      const z = (vNew - mean) / s;
+      out[i] = z > highZ ? 1 : z < lowZ ? -1 : 0;
     }
   }
 
@@ -103,6 +119,7 @@ export function volatilityRegime(
 
 export function signedVolume(open: number[], close: number[], volume: number[]): Array<number | null> {
   assertSameLength(open, close, volume);
+  assertNonNegativeSeries("volume", volume);
   const out = makeSeries(close.length);
   for (let i = 0; i < close.length; i++) {
     const diff = close[i] - open[i];
@@ -119,6 +136,7 @@ export function volumeDelta(
 ): Array<number | null> {
   assertSameLength(open, close, volume);
   assertPositiveInteger("length", length);
+  assertNonNegativeSeries("volume", volume);
   const len = close.length;
   const out = makeSeries(len);
   let total = 0;
@@ -146,6 +164,7 @@ export function orderflowImbalance(
 ): Array<number | null> {
   assertSameLength(open, close, volume);
   assertPositiveInteger("length", length);
+  assertNonNegativeSeries("volume", volume);
   const len = close.length;
   const out = makeSeries(len);
   let signedTotal = 0;

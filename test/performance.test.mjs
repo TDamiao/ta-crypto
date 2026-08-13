@@ -165,6 +165,66 @@ test("percentReturn validates inputs and rejects invalid modes or non-finite val
   );
 });
 
+test("percentReturn and sumPeriodicReturns reject zero and negative prices with index-aware errors", () => {
+  // [0, 100] - zero initial price
+  assert.throws(
+    () => percentReturn([0, 100]),
+    /values\[0\] must be a positive number \(> 0\), got 0/
+  );
+  assert.throws(
+    () => percentReturn([0, 100], { cumulative: true }),
+    /values\[0\] must be a positive number \(> 0\), got 0/
+  );
+  assert.throws(
+    () => percentReturn([0, 100], { mode: "sum" }),
+    /values\[0\] must be a positive number \(> 0\), got 0/
+  );
+  assert.throws(
+    () => sumPeriodicReturns([0, 100]),
+    /values\[0\] must be a positive number \(> 0\), got 0/
+  );
+
+  // [100, 0] - zero intermediate price
+  assert.throws(
+    () => percentReturn([100, 0]),
+    /values\[1\] must be a positive number \(> 0\), got 0/
+  );
+  assert.throws(
+    () => sumPeriodicReturns([100, 0]),
+    /values\[1\] must be a positive number \(> 0\), got 0/
+  );
+
+  // [100, 0, 100] - zero intermediate denominator
+  assert.throws(
+    () => percentReturn([100, 0, 100]),
+    /values\[1\] must be a positive number \(> 0\), got 0/
+  );
+  assert.throws(
+    () => sumPeriodicReturns([100, 0, 100]),
+    /values\[1\] must be a positive number \(> 0\), got 0/
+  );
+
+  // Negative prices
+  assert.throws(
+    () => percentReturn([100, -10, 120]),
+    /values\[1\] must be a positive number \(> 0\), got -10/
+  );
+  assert.throws(
+    () => sumPeriodicReturns([-50, 100]),
+    /values\[0\] must be a positive number \(> 0\), got -50/
+  );
+
+  // Candle input with zero or negative close
+  assert.throws(
+    () => percentReturn([{ open: 100, high: 105, low: 95, close: 0, volume: 10 }, { open: 100, high: 110, low: 95, close: 105, volume: 10 }]),
+    /values\[0\] must be a positive number \(> 0\), got 0/
+  );
+  assert.throws(
+    () => sumPeriodicReturns([{ o: 100, h: 105, l: 95, c: -10, v: 10 }]),
+    /values\[0\] must be a positive number \(> 0\), got -10/
+  );
+});
+
 test("ta namespace exports percentReturn and sumPeriodicReturns correctly", () => {
   assert.equal(typeof ta.percentReturn, "function");
   assert.equal(typeof ta.sumPeriodicReturns, "function");

@@ -166,6 +166,54 @@ function legacyVolatilityRegime(values, length, periodsPerYear = 365, lowZ = -0.
   return out;
 }
 
+function assertSeriesParity(name, actual, expected, tol = 1e-9) {
+  if (actual.length !== expected.length) {
+    throw new Error(`[parity-gate] ${name}: length mismatch (actual ${actual.length} vs expected ${expected.length})`);
+  }
+  let maxDiff = 0;
+  for (let i = 0; i < actual.length; i++) {
+    const a = actual[i];
+    const e = expected[i];
+    if (a === null || e === null) {
+      if (a !== e) {
+        throw new Error(`[parity-gate] ${name}: null mismatch at index ${i} (actual ${a} vs expected ${e})`);
+      }
+    } else {
+      const diff = Math.abs(a - e);
+      if (diff > maxDiff) maxDiff = diff;
+      if (diff > tol) {
+        throw new Error(`[parity-gate] ${name}: numeric mismatch at index ${i} (actual=${a}, expected=${e}, diff=${diff}, tol=${tol})`);
+      }
+    }
+  }
+  return maxDiff;
+}
+
+function assertLegacyParity(length = 2000) {
+  const close = makeSeries(length);
+  const open = close.map((v, i) => v + Math.sin(i * 0.01) * 0.5);
+  const high = close.map((v, i) => Math.max(v, open[i]) + 1);
+  const low = close.map((v, i) => Math.min(v, open[i]) - 1);
+  const volume = close.map((_, i) => 10 + (i % 50));
+
+  assertSeriesParity("sma(20)", sma(close, 20), legacySma(close, 20));
+
+  const bOptimized = bbands(close, 20, 2);
+  const bLegacy = legacyBbands(close, 20, 2);
+  assertSeriesParity("bbands.basis(20)", bOptimized.basis, bLegacy.basis);
+  assertSeriesParity("bbands.upper(20)", bOptimized.upper, bLegacy.upper);
+  assertSeriesParity("bbands.lower(20)", bOptimized.lower, bLegacy.lower);
+
+  assertSeriesParity("vwap(20)", vwap(high, low, close, volume, 20), legacyVwap(high, low, close, volume, 20));
+  assertSeriesParity("mfi(14)", mfi(high, low, close, volume, 14), legacyMfi(high, low, close, volume, 14));
+  assertSeriesParity("volumeDelta(14)", volumeDelta(open, close, volume, 14), legacyVolumeDelta(open, close, volume, 14));
+  assertSeriesParity("orderflowImbalance(14)", orderflowImbalance(open, close, volume, 14), legacyOrderflowImbalance(open, close, volume, 14));
+  assertSeriesParity("realizedVolatility(30)", realizedVolatility(close, 30), legacyRealizedVol(close, 30));
+  assertSeriesParity("volatilityRegime(30)", volatilityRegime(close, 30), legacyVolatilityRegime(close, 30));
+
+  console.log(`[parity-gate] all legacy-vs-rolling parity checks passed (dataset length: ${length})\n`);
+}
+
 function report(name, length, before, after) {
   const runs = length === 10_000 ? 30 : 5;
   const beforeMs = measure(before, runs);
@@ -176,6 +224,9 @@ function report(name, length, before, after) {
     `after=${afterMs.toFixed(3)} ms speedup=${speedup.toFixed(2)}x`
   );
 }
+
+// Parity gate: enforce parity before measuring benchmark timings
+assertLegacyParity(2000);
 
 for (const length of [10_000, 100_000]) {
   const close = makeSeries(length);
