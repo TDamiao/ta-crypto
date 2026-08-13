@@ -9,6 +9,7 @@ import {
   volatilityRegime,
   toOHLCV
 } from "../dist/index.js";
+import { classifyVolatilityRegime } from "../dist/core/crypto.js";
 
 const eps = 1e-10;
 
@@ -251,24 +252,150 @@ test("realizedVolatility and volatilityRegime numerical stability on tiny pertur
   }
 });
 
-test("volatilityRegime threshold boundary tests around lowZ and highZ", () => {
-  // Construct precise price sequence where we control z-scores around boundaries
-  // lowZ = -0.5, highZ = 0.5
-  // Length = 10. Warmup index = 20.
-  // We test discrete classifications:
-  // z > highZ -> 1
-  // z < lowZ -> -1
-  // lowZ <= z <= highZ -> 0
-  const length = 5;
-  // Let prices create controlled volatility
-  const basePrices = Array.from({ length: 30 }, (_, i) => 100 * (1 + (i % 2 === 0 ? 0.05 : -0.04)));
-  const regime = volatilityRegime(basePrices, length, 365, -0.5, 0.5);
+test("classifyVolatilityRegime explicitly proves threshold boundaries for lowZ and highZ", () => {
+  const lowZ = -0.5;
+  const highZ = 0.5;
 
-  // All computed regimes must be exactly -1, 0, or 1
-  for (let i = length * 2; i < basePrices.length; i++) {
-    assert.ok(
-      regime[i] === -1 || regime[i] === 0 || regime[i] === 1,
-      `Invalid discrete regime at index ${i}: ${regime[i]}`
-    );
+  // 1. z < lowZ => -1
+  assert.equal(classifyVolatilityRegime(-1.0, lowZ, highZ), -1);
+  assert.equal(classifyVolatilityRegime(-0.500001, lowZ, highZ), -1);
+  assert.equal(classifyVolatilityRegime(lowZ - 1e-9, lowZ, highZ), -1);
+
+  // 2. z == lowZ => 0
+  assert.equal(classifyVolatilityRegime(lowZ, lowZ, highZ), 0);
+  assert.equal(classifyVolatilityRegime(-0.5, lowZ, highZ), 0);
+
+  // 3. z immediately above lowZ => 0
+  assert.equal(classifyVolatilityRegime(lowZ + 1e-9, lowZ, highZ), 0);
+  assert.equal(classifyVolatilityRegime(-0.499999, lowZ, highZ), 0);
+
+  // 4. z in neutral regime => 0
+  assert.equal(classifyVolatilityRegime(0, lowZ, highZ), 0);
+
+  // 5. z immediately below highZ => 0
+  assert.equal(classifyVolatilityRegime(highZ - 1e-9, lowZ, highZ), 0);
+  assert.equal(classifyVolatilityRegime(0.499999, lowZ, highZ), 0);
+
+  // 6. z == highZ => 0
+  assert.equal(classifyVolatilityRegime(highZ, lowZ, highZ), 0);
+  assert.equal(classifyVolatilityRegime(0.5, lowZ, highZ), 0);
+
+  // 7. z > highZ => 1
+  assert.equal(classifyVolatilityRegime(highZ + 1e-9, lowZ, highZ), 1);
+  assert.equal(classifyVolatilityRegime(0.500001, lowZ, highZ), 1);
+  assert.equal(classifyVolatilityRegime(1.0, lowZ, highZ), 1);
+});
+
+test("volatilityRegime end-to-end threshold boundary validation around lowZ and highZ", () => {
+  const length = 5;
+  const N = 40;
+  const prices = new Array(N);
+  prices[0] = 100;
+  for (let i = 1; i < N; i++) {
+    const ret = 0.01 * (1 + 0.5 * Math.sin(i * 0.7));
+    prices[i] = prices[i - 1] * Math.exp(ret);
   }
+
+  const vol = realizedVolatility(prices, length, 365);
+  const targetIndex = length * 2; // Index 10: first valid regime output
+
+  let mean = 0;
+  let M2 = 0;
+  for (let i = length + 1; i <= length * 2; i++) {
+    const v = vol[i];
+    const count = i - length;
+    const delta = v - mean;
+    mean += delta / count;
+    const delta2 = v - mean;
+    M2 += delta * delta2;
+  }
+  const s0 = Math.sqrt(Math.max(0, M2 / length));
+  assert.ok(s0 > 1e-6, "test setup requires non-degenerate volatility standard deviation");
+  const actualZ = (vol[targetIndex] - mean) / s0;
+
+  // 1. z < lowZ => -1
+  const resBelowLow = volatilityRegime(prices, length, 365, actualZ + 0.05, actualZ + 0.5);
+  assert.equal(resBelowLow[targetIndex], -1, `expected -1 when z (${actualZ}) < lowZ (${actualZ + 0.05})`);
+
+  // 2. z == lowZ => 0
+  const resExactLow = volatilityRegime(prices, length, 365, actualZ, actualZ + 0.5);
+  assert.equal(resExactLow[targetIndex], 0, `expected 0 when z (${actualZ}) == lowZ (${actualZ})`);
+
+  // 3. z immediately above lowZ => 0
+  const resAboveLow = volatilityRegime(prices, length, 365, actualZ - 0.001, actualZ + 0.5);
+  assert.equal(resAboveLow[targetIndex], 0, `expected 0 when z (${actualZ}) > lowZ (${actualZ - 0.001})`);
+
+  // 4. z immediately below highZ => 0
+  const resBelowHigh = volatilityRegime(prices, length, 365, actualZ - 0.5, actualZ + 0.001);
+  assert.equal(resBelowHigh[targetIndex], 0, `expected 0 when z (${actualZ}) < highZ (${actualZ + 0.001})`);
+
+  // 5. z == highZ => 0
+  const resExactHigh = volatilityRegime(prices, length, 365, actualZ - 0.5, actualZ);
+  assert.equal(resExactHigh[targetIndex], 0, `expected 0 when z (${actualZ}) == highZ (${actualZ})`);
+
+  // 6. z > highZ => 1
+  const resAboveHigh = volatilityRegime(prices, length, 365, actualZ - 0.5, actualZ - 0.05);
+  assert.equal(resAboveHigh[targetIndex], 1, `expected 1 when z (${actualZ}) > highZ (${actualZ - 0.05})`);
+});
+
+test("volatilityRegime zero deviation and degenerate variance (s <= 1e-12) handling", () => {
+  const length = 5;
+
+  // Case 1: Exact zero deviation (constant price series) -> s === 0 -> regime 0
+  const flatPrices = Array.from({ length: 30 }, () => 100);
+  const flatRegime = volatilityRegime(flatPrices, length, 365, -0.5, 0.5);
+  for (let i = 0; i < length * 2; i++) {
+    assert.equal(flatRegime[i], null);
+  }
+  for (let i = length * 2; i < flatPrices.length; i++) {
+    assert.equal(flatRegime[i], 0);
+  }
+
+  // Case 2: Constant return series (steady geometric growth) -> constant realized vol -> s === 0 -> regime 0
+  const constGrowth = Array.from({ length: 30 }, (_, i) => 100 * Math.exp(0.01 * i));
+  const growthRegime = volatilityRegime(constGrowth, length, 365, -0.5, 0.5);
+  for (let i = length * 2; i < constGrowth.length; i++) {
+    assert.equal(growthRegime[i], 0);
+  }
+
+  // Case 3: Degenerate micro-variance series (s <= 1e-12)
+  const degenPrices = new Array(30);
+  degenPrices[0] = 100;
+  for (let i = 1; i < 30; i++) {
+    const r = 0.01 + 1e-14 * (i % 2 === 0 ? 1 : -1);
+    degenPrices[i] = degenPrices[i - 1] * Math.exp(r);
+  }
+  const degenRegime = volatilityRegime(degenPrices, length, 365, -0.5, 0.5);
+  for (let i = length * 2; i < degenPrices.length; i++) {
+    assert.equal(degenRegime[i], 0, `index ${i} with degenerate variance must be neutral regime 0`);
+  }
+});
+
+test("volatilityRegime adversarial high magnitude and tiny variance stability", () => {
+  const N = 80;
+  const length = 10;
+  const highMagPrices = new Array(N);
+  highMagPrices[0] = 100000000;
+  for (let i = 1; i < N; i++) {
+    const r = 0.005 + 1e-7 * Math.sin(i * 0.5);
+    highMagPrices[i] = highMagPrices[i - 1] * Math.exp(r);
+  }
+
+  const vol = realizedVolatility(highMagPrices, length, 365);
+  const regime = volatilityRegime(highMagPrices, length, 365, -0.5, 0.5);
+
+  assert.equal(regime.length, N);
+  for (let i = 0; i < length * 2; i++) {
+    assert.equal(regime[i], null);
+  }
+  for (let i = length * 2; i < N; i++) {
+    const r = regime[i];
+    assert.ok(r === -1 || r === 0 || r === 1, `invalid regime value ${r} at index ${i}`);
+    assert.ok(Number.isFinite(r), `non-finite regime value at index ${i}`);
+    assert.ok(Number.isFinite(vol[i]), `non-finite realized volatility at index ${i}`);
+  }
+
+  // Determinism check across multiple invocations
+  const regime2 = volatilityRegime(highMagPrices, length, 365, -0.5, 0.5);
+  assert.deepEqual(regime, regime2);
 });

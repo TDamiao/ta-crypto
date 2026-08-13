@@ -48,9 +48,9 @@ const regime = volatilityRegime(close, 30, 365, -0.5, 0.5);
 
 The function returns:
 
-- `-1` below the low z-score threshold;
-- `0` between thresholds or when window deviation is zero;
-- `1` above the high z-score threshold;
+- `-1` below the low z-score threshold (`z < lowZ`);
+- `0` between thresholds (`lowZ <= z <= highZ`), on exact threshold boundaries (`z == lowZ` or `z == highZ`), or when window standard deviation is zero / numerically degenerate ($s \le 10^{-12}$);
+- `1` above the high z-score threshold (`z > highZ`);
 - `null` during warmup.
 
 Because this path uses log returns, it enforces strictly positive prices (> 0) starting in v0.4 ([issue #28](https://github.com/TDamiao/ta-crypto/issues/28)). Non-positive or non-finite prices are rejected with index-aware errors before volatility calculations.

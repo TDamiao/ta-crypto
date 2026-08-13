@@ -61,6 +61,12 @@ export function fundingRateAPR(values: number[], periodsPerYear = 365 * 3): Arra
   return out;
 }
 
+export function classifyVolatilityRegime(z: number, lowZ: number, highZ: number): -1 | 0 | 1 {
+  if (z > highZ) return 1;
+  if (z < lowZ) return -1;
+  return 0;
+}
+
 export function volatilityRegime(
   values: number[],
   length = 30,
@@ -91,11 +97,15 @@ export function volatilityRegime(
   }
 
   const s0 = Math.sqrt(Math.max(0, M2 / length));
+  // When rolling standard deviation of realized volatility is degenerate (s <= 1e-12),
+  // window variation is dominated by IEEE 754 floating-point quantization noise.
+  // To avoid division-by-near-zero instability and spurious regime flips, degenerate
+  // volatility is classified as neutral regime (0).
   if (s0 <= 1e-12) {
     out[length * 2] = 0;
   } else {
     const z0 = ((vol[length * 2] as number) - mean) / s0;
-    out[length * 2] = z0 > highZ ? 1 : z0 < lowZ ? -1 : 0;
+    out[length * 2] = classifyVolatilityRegime(z0, lowZ, highZ);
   }
 
   for (let i = length * 2 + 1; i < len; i++) {
@@ -110,7 +120,7 @@ export function volatilityRegime(
       out[i] = 0;
     } else {
       const z = (vNew - mean) / s;
-      out[i] = z > highZ ? 1 : z < lowZ ? -1 : 0;
+      out[i] = classifyVolatilityRegime(z, lowZ, highZ);
     }
   }
 
