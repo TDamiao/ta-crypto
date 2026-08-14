@@ -38,8 +38,9 @@ export function validateExceptionEntry(exc, now = new Date()) {
     }
   }
 
-  if (exc.severity && exc.severity.toLowerCase() === "critical") {
-    errors.push(`Critical severity findings cannot be excepted under repository policy.`);
+  const normalizedSeverity = typeof exc.severity === "string" ? exc.severity.trim().toLowerCase() : "";
+  if (normalizedSeverity !== "high") {
+    errors.push(`Exceptions are only permitted for "high" severity findings. Provided severity "${exc.severity}" is invalid.`);
   }
 
   if (exc.createdAt && exc.expiresAt) {
@@ -145,6 +146,8 @@ export function evaluateAudit(auditData, exceptionsData = { exceptions: [] }, op
           const matchedExcResult = exceptionResults.find(r =>
             r.valid &&
             r.exception.package === pkgName &&
+            typeof r.exception.severity === "string" &&
+            r.exception.severity.trim().toLowerCase() === "high" &&
             (r.exception.advisoryId === advisoryId || r.exception.advisoryId === via.url)
           );
 

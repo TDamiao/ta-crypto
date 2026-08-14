@@ -68,12 +68,13 @@ npm run security:audit
 npm run release:check
 ```
 
-### Machine-Readable Audit Evidence:
-The gate writes `security-audit-report.json` containing:
+### Machine-Readable Audit Evidence & CI Retention:
+The gate writes `security-audit-report.json`, which is automatically captured and retained as a CI build artifact (`security-audit-report-node-<version>` with 30-day retention even upon audit failure) containing:
 - Exact evaluation timestamp
 - System toolchain metadata (Node version, platform)
-- Full list of advisories, severities, and dependency chains
-- Evaluated exceptions and final pass/fail status
+- Full list of advisories, severities, affected package ranges, dependency nodes (paths in `node_modules`), and effects (dependents)
+- Evaluated temporary exceptions and their validation status
+- Final pass/fail outcome
 
 ---
 
@@ -85,16 +86,18 @@ Python dependencies used for reference parity testing are declared in [`scripts/
 - `pandas-ta>=0.3.14b`
 - `TA-Lib>=0.4.28`
 
-**Policy**:
-- Scope is strictly isolated to CI compatibility verification (`npm run test:compat:python`).
-- Python packages do not interact with build output or published npm packages.
-- Dependencies are installed in ephemeral virtual environments on GitHub-hosted runners.
+**Policy & Review Cadence**:
+- **Scope**: Strictly isolated to CI reference parity validation (`npm run test:compat:python`).
+- **Isolation**: Python packages do not enter the published npm package and do not execute in Node.js production runtime.
+- **Review Cadence**: Managed automatically via weekly Dependabot updates (`package-ecosystem: "pip"`, directory: `/scripts`).
 
 ---
 
 ## 6. Dependabot & Proactive Updates
 
 Automated dependency updates are managed via [`.github/dependabot.yml`](../.github/dependabot.yml):
-- **Ecosystems**: `npm` and `github-actions`
-- **Schedule**: Weekly
+- **Ecosystems**:
+  - `github-actions` (directory: `/`, schedule: weekly)
+  - `npm` (directory: `/`, schedule: weekly)
+  - `pip` (directory: `/scripts`, schedule: weekly)
 - **Governance**: Security advisories and patch/minor updates are prioritized; major upgrades require explicit maintainer review and full regression validation.

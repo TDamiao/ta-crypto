@@ -25,6 +25,14 @@ jobs:
       - run: npm ci
       - run: npm run check:actions
       - run: npm run security:audit
+      - name: Upload Security Audit Report
+        if: always()
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
+        with:
+          name: security-audit-report-node-${{ matrix.node }}
+          path: security-audit-report.json
+          retention-days: 30
+          if-no-files-found: ignore
       - run: npm run build
       - run: npm test
       - run: npm run bench:regression

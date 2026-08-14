@@ -87,7 +87,55 @@ test("security-audit: critical vulnerability cannot be excepted", () => {
   const result = evaluateAudit(criticalAudit, exceptionsData, { now: "2026-08-10T00:00:00Z" });
   assert.equal(result.pass, false);
   assert.ok(result.malformedExceptions.length > 0);
-  assert.match(result.malformedExceptions[0].errors[0], /Critical severity findings cannot be excepted/);
+  assert.match(result.malformedExceptions[0].errors[0], /Exceptions are only permitted for "high" severity findings/);
+});
+
+test("security-audit: exception with non-high severity (low, moderate, invalid) fails validation", () => {
+  const severities = ["low", "moderate", "unknown", "invalid-severity"];
+
+  for (const sev of severities) {
+    const exc = {
+      advisoryId: "GHSA-test-1234",
+      package: "vulnerable-pkg",
+      severity: sev,
+      scope: "dev",
+      reachability: "none",
+      impact: "none",
+      justification: "test",
+      owner: "test",
+      createdAt: "2026-08-01T00:00:00Z",
+      expiresAt: "2026-08-20T00:00:00Z",
+      trackingIssue: "https://github.com/TDamiao/ta-crypto/issues/1"
+    };
+
+    const res = validateExceptionEntry(exc, new Date("2026-08-05T00:00:00Z"));
+    assert.equal(res.valid, false);
+    assert.match(res.errors[0], /Exceptions are only permitted for "high" severity findings/);
+
+    // Also assert that when fed into evaluateAudit with a HIGH finding, it blocks
+    const highAudit = {
+      auditReportVersion: 2,
+      vulnerabilities: {
+        "vulnerable-pkg": {
+          name: "vulnerable-pkg",
+          severity: "high",
+          via: [
+            {
+              source: 1002,
+              name: "vulnerable-pkg",
+              title: "Denial of Service",
+              url: "https://github.com/advisories/GHSA-test-1234",
+              severity: "high"
+            }
+          ]
+        }
+      }
+    };
+
+    const result = evaluateAudit(highAudit, { exceptions: [exc] }, { now: "2026-08-05T00:00:00Z" });
+    assert.equal(result.pass, false, `Expected severity '${sev}' exception to fail evaluation`);
+    assert.equal(result.summary.stats.highBlocking, 1);
+  }
 });
 
 test("security-audit: unexcepted high vulnerability blocks CI", () => {
