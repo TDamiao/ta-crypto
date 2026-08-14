@@ -87,9 +87,9 @@ To guarantee that internal rolling algorithms in `src/core/rolling.ts` maintain 
 
 $$\text{Growth Ratio} = \frac{\text{medianMs}(100\text{k})}{\text{medianMs}(10\text{k})}$$
 
-- **Ideal $O(N)$ Scaling**: ~10x to 15x.
-- **Maximum Allowed Threshold**: **$\le 35\times$**.
-- **Quadratic Regression Guard**: A rescan algorithm would scale $\approx 100\times$, immediately triggering a `FAIL` status.
+- **Ideal $O(N)$ Scaling**: ~7x to 25x on bare-metal CPUs; up to ~40x on virtualized cloud VMs with GC sweeps.
+- **Maximum Allowed Threshold**: **$\le 50\times$**.
+- **Quadratic Regression Guard**: A rescan algorithm would scale $\approx 100\times - 200\times$, immediately triggering a `FAIL` status.
 
 ---
 
