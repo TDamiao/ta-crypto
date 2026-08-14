@@ -87,6 +87,18 @@ Local commands do not create release commits, tags, GitHub Releases, or npm publ
 - **Software Bill of Materials (SBOM)**: Every release generates canonical SPDX 2.3 (`ta-crypto-<version>.sbom.spdx.json`) and CycloneDX 1.5 (`ta-crypto-<version>.sbom.cdx.json`) SBOMs capturing exact artifact SHA-256/SHA-512 hashes, licensing, and package contents.
 - **Immutable GitHub Actions Pinning**: All GitHub Actions in `.github/workflows/*.yml` are pinned to immutable 40-character commit SHAs with version comments, continuously enforced by `npm run check:actions` and updated via Dependabot.
 
+### Environment Protection Rules (`npm-publish`)
+
+To ensure that npm publications occur exclusively through deliberate maintainer authorization, the repository configures the following protection rules on `GitHub → Settings → Environments → npm-publish`:
+
+1. **Required Reviewers**: **Enabled** (designated reviewer: maintainer `@TDamiao`). Every deployment to `npm-publish` pauses and requires explicit manual human approval in the GitHub Actions UI before the publication job executes.
+2. **Allow Administrators to Bypass**: **Disabled** (unchecked). All publication runs, regardless of user role, must go through the formal environment approval gate.
+3. **Wait Timer**: **Disabled** (0 minutes).
+4. **Environment Secrets**: **None** (0 secrets needed; publishing uses pure OIDC identity federation).
+5. **Deployment Branches and Tags**: **Restricted to `main`**.
+   - *Rationale*: Release Please triggers on `push` to `main` and then checks out the release tag within the job. Restricting the environment to `main` ensures that only release runs originating from the canonical branch can request `npm-publish` deployment credentials.
+   - *Tag Policy Evaluation*: After the first controlled OIDC release is executed and empirical deployment ref logs are captured, the tag protection rule may be evaluated and hardened.
+
 If validation or npm publication fails after the tag and GitHub Release exist, fix the external cause and rerun only the failed GitHub Actions jobs. The npm version check prevents a rerun from attempting to overwrite an existing version. Published npm versions and Git tags are immutable recovery boundaries; corrections require a new patch release.
 
 ## Known limitations

@@ -152,9 +152,13 @@ After a release workflow completes, verify:
 5. Provenance attestation is verifiable via `npm audit signatures`.
 6. SBOM artifacts (SPDX 2.3 / CycloneDX 1.5) are attached to release evidence.
 
-### Token Migration & Revocation Policy
-- The publication workflow uses GitHub Actions OIDC (`id-token: write`) exclusively within the protected GitHub Environment `npm-publish` and does not reference `NPM_TOKEN` or `NODE_AUTH_TOKEN`.
-- Any legacy long-lived npm tokens remaining on the npm account should be manually revoked in the npm web console once the first OIDC release publication is confirmed.
+### Environment Protection Rules & Human Approval (`npm-publish`)
+All production npm publications require passing through the `npm-publish` environment protection gate:
+- **Required Reviewers**: Enabled (designated reviewer `@TDamiao`). The publication step will pause until explicitly approved by the maintainer.
+- **Admin Bypass**: Disabled.
+- **Wait Timer**: Disabled.
+- **Environment Secrets**: None (zero tokens; OIDC-federated).
+- **Deployment Branches**: `main`.
 
 ### Failure Recovery Policy
 - Published npm packages and Git tags are **immutable**.
