@@ -55,6 +55,9 @@ CI uses Linux and Python 3.12 for the full Python reference job. TA-Lib and pand
 Useful evidence:
 
 - [Changelog](../CHANGELOG.md)
+- [Security policy](../SECURITY.md)
+- [Dependency security policy](dependency-security.md)
+- [Release policy](release-policy.md)
 - [GitHub releases](https://github.com/TDamiao/ta-crypto/releases)
 - [npm package](https://www.npmjs.com/package/ta-crypto)
 - [CI workflow](../.github/workflows/ci.yml)

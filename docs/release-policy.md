@@ -22,7 +22,7 @@ Commits merged into `main` accumulate in the repository and in the Release Pleas
 ### Emergency Releases (Hotfixes)
 The weekly cadence restriction may be bypassed for urgent defects:
 - Critical mathematical or financial calculation correctness regressions.
-- Security vulnerabilities or compromised build artifacts.
+- Security vulnerabilities or compromised build artifacts (see [Security policy](../SECURITY.md)).
 - Broken npm packages or installation failures.
 - Severe public API regressions.
 
