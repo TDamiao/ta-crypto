@@ -1,44 +1,58 @@
-import { performance } from "node:perf_hooks";
-import { sma, ema, rsi, macd, bbands, atr, adx } from "../dist/index.js";
+import {
+  sma,
+  ema,
+  rsi,
+  macd,
+  bbands,
+  atr,
+  adx,
+  mfi,
+  vwap,
+  volumeDelta,
+  orderflowImbalance,
+  realizedVolatility,
+  volatilityRegime
+} from "../dist/index.js";
+import { getDataset, BENCH_SIZES } from "./bench/dataset.js";
+import { measureBenchmark, getEnvironmentMetadata, formatAsciiTable } from "./bench/harness.js";
 
-function makeSeries(length, start = 100) {
-  const out = new Array(length);
-  let v = start;
-  for (let i = 0; i < length; i++) {
-    v += (Math.random() - 0.5) * 2;
-    out[i] = v;
-  }
-  return out;
-}
+const env = getEnvironmentMetadata();
+console.log("================================================================================");
+console.log(" ta-crypto Deterministic Indicator Benchmark");
+console.log(` Node: ${env.nodeVersion} | Platform: ${env.platform} (${env.arch}) | CPU: ${env.cpuModel} (${env.cpuCount} cores)`);
+console.log("================================================================================\n");
 
-function run(name, fn, runs = 50) {
-  const t0 = performance.now();
-  for (let i = 0; i < runs; i++) fn();
-  const t1 = performance.now();
-  const ms = (t1 - t0) / runs;
-  console.log(`${name.padEnd(12)} ${ms.toFixed(3)} ms/run`);
-}
+const size = BENCH_SIZES.STANDARD_10K;
+const data = getDataset(size);
+const { open, high, low, close, volume } = data;
 
-const n = 10_000;
-const close = makeSeries(n);
-const high = close.map(v => v + Math.random() * 1.5);
-const low = close.map(v => v - Math.random() * 1.5);
-const volume = close.map(() => 10 + Math.random() * 90);
+console.log(`[bench] Executing 10k deterministic candle benchmark (seed: 0x43525950, 7 samples, 3 warmups)...\n`);
 
-console.log(`Benchmark on ${n} candles`);
-run("sma(14)", () => sma(close, 14));
-run("ema(14)", () => ema(close, 14));
-run("rsi(14)", () => rsi(close, 14));
-run("macd", () => macd(close));
-run("bbands", () => bbands(close, 20, 2));
-run("atr(14)", () => atr(high, low, close, 14));
-run("adx(14)", () => adx(high, low, close, 14));
-run("vwap", () => {
-  let cumPV = 0;
-  let cumV = 0;
-  for (let i = 0; i < n; i++) {
-    cumPV += ((high[i] + low[i] + close[i]) / 3) * volume[i];
-    cumV += volume[i];
-  }
-  return cumPV / cumV;
-});
+const results = [
+  measureBenchmark("sma(20)", () => sma(close, 20), { datasetSize: size, id: "batch.sma20.10k" }),
+  measureBenchmark("ema(20)", () => ema(close, 20), { datasetSize: size, id: "batch.ema20.10k" }),
+  measureBenchmark("rsi(14)", () => rsi(close, 14), { datasetSize: size, id: "batch.rsi14.10k" }),
+  measureBenchmark("macd(12,26,9)", () => macd(close, 12, 26, 9), { datasetSize: size, id: "batch.macd.10k" }),
+  measureBenchmark("bbands(20,2)", () => bbands(close, 20, 2), { datasetSize: size, id: "batch.bbands20.10k" }),
+  measureBenchmark("atr(14)", () => atr(high, low, close, 14), { datasetSize: size, id: "batch.atr14.10k" }),
+  measureBenchmark("adx(14)", () => adx(high, low, close, 14), { datasetSize: size, id: "batch.adx14.10k" }),
+  measureBenchmark("mfi(14)", () => mfi(high, low, close, volume, 14), { datasetSize: size, id: "batch.mfi14.10k" }),
+  measureBenchmark("vwap(20)", () => vwap(high, low, close, volume, 20), { datasetSize: size, id: "batch.vwap20.10k" }),
+  measureBenchmark("volumeDelta(14)", () => volumeDelta(open, close, volume, 14), { datasetSize: size, id: "batch.volumeDelta14.10k" }),
+  measureBenchmark("orderflowImbalance(14)", () => orderflowImbalance(open, close, volume, 14), { datasetSize: size, id: "batch.orderflowImbal14.10k" }),
+  measureBenchmark("realizedVol(30)", () => realizedVolatility(close, 30, 365), { datasetSize: size, id: "batch.realizedVol30.10k" }),
+  measureBenchmark("volatilityRegime(30)", () => volatilityRegime(close, 30, 365, -0.5, 0.5), { datasetSize: size, id: "batch.volatilityRegime30.10k" })
+];
+
+const headers = ["Indicator", "Dataset", "Median (ms)", "Min (ms)", "Max (ms)", "Ops / sec"];
+const rows = results.map(r => [
+  r.name,
+  `${size.toLocaleString("en-US")} bars`,
+  r.medianMs.toFixed(3),
+  r.minMs.toFixed(3),
+  r.maxMs.toFixed(3),
+  r.opsPerSec ? r.opsPerSec.toLocaleString("en-US") : "N/A"
+]);
+
+console.log(formatAsciiTable(headers, rows));
+console.log("\n[bench] Completed successfully with zero Math.random() calls.");

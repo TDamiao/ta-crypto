@@ -1,0 +1,224 @@
+{
+  "$schemaVersion": 1,
+  "policyVersion": 1,
+  "description": "Versioned performance baseline for ta-crypto benchmark suite",
+  "seed": 1129470288,
+  "benchmarks": {
+    "batch.sma20.10k": {
+      "name": "sma(20)",
+      "datasetSize": 10000,
+      "medianMs": 0.0892,
+      "opsPerSec": 112097318
+    },
+    "batch.ema20.10k": {
+      "name": "ema(20)",
+      "datasetSize": 10000,
+      "medianMs": 0.0882,
+      "opsPerSec": 113378685
+    },
+    "batch.rsi14.10k": {
+      "name": "rsi(14)",
+      "datasetSize": 10000,
+      "medianMs": 0.1019,
+      "opsPerSec": 98175699
+    },
+    "batch.macd.10k": {
+      "name": "macd(12,26,9)",
+      "datasetSize": 10000,
+      "medianMs": 0.3278,
+      "opsPerSec": 30509515
+    },
+    "batch.bbands20.10k": {
+      "name": "bbands(20,2)",
+      "datasetSize": 10000,
+      "medianMs": 0.2726,
+      "opsPerSec": 36689412
+    },
+    "batch.atr14.10k": {
+      "name": "atr(14)",
+      "datasetSize": 10000,
+      "medianMs": 0.3144,
+      "opsPerSec": 31802408
+    },
+    "batch.adx14.10k": {
+      "name": "adx(14)",
+      "datasetSize": 10000,
+      "medianMs": 0.7313,
+      "opsPerSec": 13673655
+    },
+    "batch.mfi14.10k": {
+      "name": "mfi(14)",
+      "datasetSize": 10000,
+      "medianMs": 0.2612,
+      "opsPerSec": 38286070
+    },
+    "batch.vwap20.10k": {
+      "name": "vwap(20)",
+      "datasetSize": 10000,
+      "medianMs": 0.1856,
+      "opsPerSec": 53864799
+    },
+    "batch.volumeDelta14.10k": {
+      "name": "volumeDelta(14)",
+      "datasetSize": 10000,
+      "medianMs": 0.1993,
+      "opsPerSec": 50165144
+    },
+    "batch.orderflowImbal14.10k": {
+      "name": "orderflowImbalance(14)",
+      "datasetSize": 10000,
+      "medianMs": 0.2109,
+      "opsPerSec": 47410217
+    },
+    "batch.realizedVol30.10k": {
+      "name": "realizedVolatility(30)",
+      "datasetSize": 10000,
+      "medianMs": 0.1321,
+      "opsPerSec": 75709741
+    },
+    "batch.volatilityRegime30.10k": {
+      "name": "volatilityRegime(30)",
+      "datasetSize": 10000,
+      "medianMs": 0.2483,
+      "opsPerSec": 40277918
+    },
+    "batch.sma20.100k": {
+      "name": "sma(20)",
+      "datasetSize": 100000,
+      "medianMs": 0.6874,
+      "opsPerSec": 145472214
+    },
+    "batch.ema20.100k": {
+      "name": "ema(20)",
+      "datasetSize": 100000,
+      "medianMs": 0.9741,
+      "opsPerSec": 102654017
+    },
+    "batch.rsi14.100k": {
+      "name": "rsi(14)",
+      "datasetSize": 100000,
+      "medianMs": 1.0941,
+      "opsPerSec": 91402456
+    },
+    "batch.macd.100k": {
+      "name": "macd(12,26,9)",
+      "datasetSize": 100000,
+      "medianMs": 4.79,
+      "opsPerSec": 20877010
+    },
+    "batch.bbands20.100k": {
+      "name": "bbands(20,2)",
+      "datasetSize": 100000,
+      "medianMs": 3.9347,
+      "opsPerSec": 25415115
+    },
+    "batch.atr14.100k": {
+      "name": "atr(14)",
+      "datasetSize": 100000,
+      "medianMs": 2.9348,
+      "opsPerSec": 34073727
+    },
+    "batch.adx14.100k": {
+      "name": "adx(14)",
+      "datasetSize": 100000,
+      "medianMs": 12.1263,
+      "opsPerSec": 8246545
+    },
+    "batch.mfi14.100k": {
+      "name": "mfi(14)",
+      "datasetSize": 100000,
+      "medianMs": 2.9315,
+      "opsPerSec": 34112229
+    },
+    "batch.vwap20.100k": {
+      "name": "vwap(20)",
+      "datasetSize": 100000,
+      "medianMs": 2.2633,
+      "opsPerSec": 44182628
+    },
+    "batch.volumeDelta14.100k": {
+      "name": "volumeDelta(14)",
+      "datasetSize": 100000,
+      "medianMs": 2.8233,
+      "opsPerSec": 35419651
+    },
+    "batch.orderflowImbal14.100k": {
+      "name": "orderflowImbalance(14)",
+      "datasetSize": 100000,
+      "medianMs": 2.3901,
+      "opsPerSec": 41838457
+    },
+    "batch.realizedVol30.100k": {
+      "name": "realizedVolatility(30)",
+      "datasetSize": 100000,
+      "medianMs": 3.2387,
+      "opsPerSec": 30876110
+    },
+    "batch.volatilityRegime30.100k": {
+      "name": "volatilityRegime(30)",
+      "datasetSize": 100000,
+      "medianMs": 2.788,
+      "opsPerSec": 35868540
+    },
+    "streaming.sma20.100k": {
+      "name": "createSMA(20)",
+      "datasetSize": 100000,
+      "medianMs": 0.8626,
+      "opsPerSec": 115922473
+    },
+    "streaming.ema20.100k": {
+      "name": "createEMA(20)",
+      "datasetSize": 100000,
+      "medianMs": 0.6039,
+      "opsPerSec": 165597185
+    },
+    "streaming.rsi14.100k": {
+      "name": "createRSI(14)",
+      "datasetSize": 100000,
+      "medianMs": 1.3476,
+      "opsPerSec": 74204619
+    },
+    "streaming.macd.100k": {
+      "name": "createMACD(12,26,9)",
+      "datasetSize": 100000,
+      "medianMs": 1.8529,
+      "opsPerSec": 53970779
+    },
+    "streaming.atr14.100k": {
+      "name": "createATR(14)",
+      "datasetSize": 100000,
+      "medianMs": 0.809,
+      "opsPerSec": 123606186
+    },
+    "streaming.bbands20.100k": {
+      "name": "createBBANDS(20,2)",
+      "datasetSize": 100000,
+      "medianMs": 2.3045,
+      "opsPerSec": 43392975
+    },
+    "streaming.realizedVol30.100k": {
+      "name": "createRealizedVol(30)",
+      "datasetSize": 100000,
+      "medianMs": 2.4675,
+      "opsPerSec": 40526504
+    },
+    "streaming.volatilityRegime30.100k": {
+      "name": "createVolatilityRegime(30)",
+      "datasetSize": 100000,
+      "medianMs": 7.6348,
+      "opsPerSec": 13097863
+    },
+    "streaming.volumeDelta14.100k": {
+      "name": "createVolumeDelta(14)",
+      "datasetSize": 100000,
+      "medianMs": 1.4353,
+      "opsPerSec": 69672258
+    },
+    "streaming.orderflowImbal14.100k": {
+      "name": "createOrderflowImbal(14)",
+      "datasetSize": 100000,
+      "medianMs": 2.1229,
+      "opsPerSec": 47104543
+    }
+  }
+}

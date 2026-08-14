@@ -1,38 +1,18 @@
-import { performance } from "node:perf_hooks";
 import { bbands, sma, vwap } from "../dist/core/overlap.js";
 import { mfi } from "../dist/core/volume.js";
 import { orderflowImbalance, volatilityRegime, volumeDelta } from "../dist/core/crypto.js";
 import { realizedVolatility } from "../dist/core/performance.js";
-import {
-  createSMA,
-  createEMA,
-  createRSI,
-  createMACD,
-  createATR,
-  createBBANDS,
-  createRealizedVolatility,
-  createVolatilityRegime,
-  createVolumeDelta,
-  createOrderflowImbalance
-} from "../dist/stateful.js";
+import { getDataset, BENCH_SIZES } from "./bench/dataset.js";
+import { measureBenchmark, getEnvironmentMetadata, formatAsciiTable } from "./bench/harness.js";
+import { assertSeriesParity, assertDiscreteParity } from "./bench/parity.js";
 
-function makeSeries(length, start = 100) {
-  const values = new Array(length);
-  let value = start;
-  for (let i = 0; i < length; i++) {
-    value += Math.sin(i * 0.017) * 0.7 + Math.cos(i * 0.003) * 0.2;
-    values[i] = Math.max(1, value);
-  }
-  return values;
-}
+const env = getEnvironmentMetadata();
+console.log("================================================================================");
+console.log(" ta-crypto Rolling Engine vs Legacy Window Rescan Benchmark");
+console.log(` Node: ${env.nodeVersion} | Platform: ${env.platform} (${env.arch}) | CPU: ${env.cpuModel}`);
+console.log("================================================================================\n");
 
-function measure(fn, runs) {
-  fn();
-  const started = performance.now();
-  for (let i = 0; i < runs; i++) fn();
-  return (performance.now() - started) / runs;
-}
-
+// Legacy unoptimized reference implementations for historical comparison
 function legacySum(values, start, end) {
   let total = 0;
   for (let i = start; i <= end; i++) total += values[i];
@@ -178,148 +158,66 @@ function legacyVolatilityRegime(values, length, periodsPerYear = 365, lowZ = -0.
   return out;
 }
 
-function assertSeriesParity(name, actual, expected, tol = 1e-9) {
-  if (actual.length !== expected.length) {
-    throw new Error(`[parity-gate] ${name}: length mismatch (actual ${actual.length} vs expected ${expected.length})`);
-  }
-  let maxDiff = 0;
-  for (let i = 0; i < actual.length; i++) {
-    const a = actual[i];
-    const e = expected[i];
-    if (a === null || e === null) {
-      if (a !== e) {
-        throw new Error(`[parity-gate] ${name}: null mismatch at index ${i} (actual ${a} vs expected ${e})`);
-      }
-    } else {
-      const diff = Math.abs(a - e);
-      if (diff > maxDiff) maxDiff = diff;
-      if (diff > tol) {
-        throw new Error(`[parity-gate] ${name}: numeric mismatch at index ${i} (actual=${a}, expected=${e}, diff=${diff}, tol=${tol})`);
-      }
-    }
-  }
-  return maxDiff;
-}
-
+// 1. STRICT PARITY VERIFICATION
 function assertLegacyParity(length = 2000) {
-  const close = makeSeries(length);
-  const open = close.map((v, i) => v + Math.sin(i * 0.01) * 0.5);
-  const high = close.map((v, i) => Math.max(v, open[i]) + 1);
-  const low = close.map((v, i) => Math.min(v, open[i]) - 1);
-  const volume = close.map((_, i) => 10 + (i % 50));
+  const data = getDataset(length);
+  const { open, high, low, close, volume } = data;
 
-  assertSeriesParity("sma(20)", sma(close, 20), legacySma(close, 20));
+  assertSeriesParity("sma(20)", sma(close, 20), legacySma(close, 20), 1e-9);
 
-  const bOptimized = bbands(close, 20, 2);
-  const bLegacy = legacyBbands(close, 20, 2);
-  assertSeriesParity("bbands.basis(20)", bOptimized.basis, bLegacy.basis);
-  assertSeriesParity("bbands.upper(20)", bOptimized.upper, bLegacy.upper);
-  assertSeriesParity("bbands.lower(20)", bOptimized.lower, bLegacy.lower);
+  const bOpt = bbands(close, 20, 2);
+  const bLeg = legacyBbands(close, 20, 2);
+  assertSeriesParity("bbands.basis(20)", bOpt.basis, bLeg.basis, 1e-9);
+  assertSeriesParity("bbands.upper(20)", bOpt.upper, bLeg.upper, 1e-9);
+  assertSeriesParity("bbands.lower(20)", bOpt.lower, bLeg.lower, 1e-9);
 
-  assertSeriesParity("vwap(20)", vwap(high, low, close, volume, 20), legacyVwap(high, low, close, volume, 20));
-  assertSeriesParity("mfi(14)", mfi(high, low, close, volume, 14), legacyMfi(high, low, close, volume, 14));
-  assertSeriesParity("volumeDelta(14)", volumeDelta(open, close, volume, 14), legacyVolumeDelta(open, close, volume, 14));
-  assertSeriesParity("orderflowImbalance(14)", orderflowImbalance(open, close, volume, 14), legacyOrderflowImbalance(open, close, volume, 14));
-  assertSeriesParity("realizedVolatility(30)", realizedVolatility(close, 30), legacyRealizedVol(close, 30));
-  assertSeriesParity("volatilityRegime(30)", volatilityRegime(close, 30), legacyVolatilityRegime(close, 30));
+  assertSeriesParity("vwap(20)", vwap(high, low, close, volume, 20), legacyVwap(high, low, close, volume, 20), 1e-9);
+  assertSeriesParity("mfi(14)", mfi(high, low, close, volume, 14), legacyMfi(high, low, close, volume, 14), 1e-9);
+  assertSeriesParity("volumeDelta(14)", volumeDelta(open, close, volume, 14), legacyVolumeDelta(open, close, volume, 14), 1e-9);
+  assertSeriesParity("orderflowImbalance(14)", orderflowImbalance(open, close, volume, 14), legacyOrderflowImbalance(open, close, volume, 14), 1e-9);
+  assertSeriesParity("realizedVolatility(30)", realizedVolatility(close, 30, 365), legacyRealizedVol(close, 30, 365), 1e-9);
+  assertDiscreteParity("volatilityRegime(30)", volatilityRegime(close, 30, 365, -0.5, 0.5), legacyVolatilityRegime(close, 30, 365, -0.5, 0.5));
 
-  console.log(`[parity-gate] all legacy-vs-rolling parity checks passed (dataset length: ${length})\n`);
+  console.log(`[parity-gate] All legacy-vs-rolling parity checks passed (dataset: ${length} bars).\n`);
 }
 
-function report(name, length, before, after) {
-  const runs = length === 10_000 ? 30 : 5;
-  const beforeMs = measure(before, runs);
-  const afterMs = measure(after, runs);
-  const speedup = beforeMs / afterMs;
-  console.log(
-    `${String(length).padStart(6)} ${name.padEnd(20)} before=${beforeMs.toFixed(3)} ms ` +
-    `after=${afterMs.toFixed(3)} ms speedup=${speedup.toFixed(2)}x`
-  );
-}
-
-// Parity gate: enforce parity before measuring benchmark timings
 assertLegacyParity(2000);
 
-for (const length of [10_000, 100_000]) {
-  const close = makeSeries(length);
-  const open = close.map((v, i) => v + Math.sin(i * 0.01) * 0.5);
-  const high = close.map((v, i) => Math.max(v, open[i]) + 1);
-  const low = close.map((v, i) => Math.min(v, open[i]) - 1);
-  const volume = close.map((_, i) => 10 + (i % 50));
+for (const length of [BENCH_SIZES.STANDARD_10K, BENCH_SIZES.LARGE_100K]) {
+  const data = getDataset(length);
+  const { open, high, low, close, volume } = data;
+  const sampleCount = length === 10_000 ? 7 : 3;
+  const warmupRuns = length === 10_000 ? 3 : 1;
 
-  report("sma(20)", length, () => legacySma(close, 20), () => sma(close, 20));
-  report("bbands(20)", length, () => legacyBbands(close, 20, 2), () => bbands(close, 20, 2));
-  report("vwap(20)", length, () => legacyVwap(high, low, close, volume, 20), () => vwap(high, low, close, volume, 20));
-  report("mfi(14)", length, () => legacyMfi(high, low, close, volume, 14), () => mfi(high, low, close, volume, 14));
-  report("volumeDelta(14)", length, () => legacyVolumeDelta(open, close, volume, 14), () => volumeDelta(open, close, volume, 14));
-  report("orderflowImbalance(14)", length, () => legacyOrderflowImbalance(open, close, volume, 14), () => orderflowImbalance(open, close, volume, 14));
-  report("realizedVol(30)", length, () => legacyRealizedVol(close, 30), () => realizedVolatility(close, 30));
-  report("volatilityRegime(30)", length, () => legacyVolatilityRegime(close, 30), () => volatilityRegime(close, 30));
+  console.log(`--- Dataset: ${length.toLocaleString("en-US")} bars ---`);
+
+  const comparisons = [
+    { name: "sma(20)", legacyFn: () => legacySma(close, 20), optFn: () => sma(close, 20) },
+    { name: "bbands(20,2)", legacyFn: () => legacyBbands(close, 20, 2), optFn: () => bbands(close, 20, 2) },
+    { name: "vwap(20)", legacyFn: () => legacyVwap(high, low, close, volume, 20), optFn: () => vwap(high, low, close, volume, 20) },
+    { name: "mfi(14)", legacyFn: () => legacyMfi(high, low, close, volume, 14), optFn: () => mfi(high, low, close, volume, 14) },
+    { name: "volumeDelta(14)", legacyFn: () => legacyVolumeDelta(open, close, volume, 14), optFn: () => volumeDelta(open, close, volume, 14) },
+    { name: "orderflowImbal(14)", legacyFn: () => legacyOrderflowImbalance(open, close, volume, 14), optFn: () => orderflowImbalance(open, close, volume, 14) },
+    { name: "realizedVol(30)", legacyFn: () => legacyRealizedVol(close, 30, 365), optFn: () => realizedVolatility(close, 30, 365) },
+    { name: "volatilityRegime(30)", legacyFn: () => legacyVolatilityRegime(close, 30, 365, -0.5, 0.5), optFn: () => volatilityRegime(close, 30, 365, -0.5, 0.5) }
+  ];
+
+  const headers = ["Indicator", "Dataset", "Legacy (ms)", "Rolling (ms)", "Speedup", "Ops / sec"];
+  const rows = [];
+
+  for (const c of comparisons) {
+    const legRes = measureBenchmark(`legacy.${c.name}`, c.legacyFn, { datasetSize: length, warmupRuns, sampleCount });
+    const optRes = measureBenchmark(`opt.${c.name}`, c.optFn, { datasetSize: length, warmupRuns, sampleCount });
+    const speedup = (legRes.medianMs / optRes.medianMs).toFixed(2);
+    rows.push([
+      c.name,
+      `${length.toLocaleString("en-US")} bars`,
+      legRes.medianMs.toFixed(3),
+      optRes.medianMs.toFixed(3),
+      `${speedup}x`,
+      optRes.opsPerSec ? optRes.opsPerSec.toLocaleString("en-US") : "N/A"
+    ]);
+  }
+
+  console.log(formatAsciiTable(headers, rows) + "\n");
 }
-
-console.log("\n--- Streaming O(1) Throughput Benchmark (100k items) ---");
-const benchLen = 100_000;
-const benchClose = makeSeries(benchLen);
-const benchOpen = benchClose.map((v, i) => v + Math.sin(i * 0.01) * 0.5);
-const benchHigh = benchClose.map((v, i) => Math.max(v, benchOpen[i]) + 1);
-const benchLow = benchClose.map((v, i) => Math.min(v, benchOpen[i]) - 1);
-const benchVolume = benchClose.map((_, i) => 10 + (i % 50));
-
-function benchStreaming(name, fn) {
-  const t0 = performance.now();
-  fn();
-  const elapsed = performance.now() - t0;
-  const opsPerSec = (benchLen / (elapsed / 1000)).toLocaleString("en-US", { maximumFractionDigits: 0 });
-  console.log(`${name.padEnd(26)}: ${elapsed.toFixed(2)} ms total (${opsPerSec} ops/sec)`);
-}
-
-benchStreaming("createSMA(20)", () => {
-  const ind = createSMA(20);
-  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
-});
-
-benchStreaming("createEMA(20)", () => {
-  const ind = createEMA(20);
-  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
-});
-
-benchStreaming("createRSI(14)", () => {
-  const ind = createRSI(14);
-  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
-});
-
-benchStreaming("createMACD(12,26,9)", () => {
-  const ind = createMACD(12, 26, 9);
-  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
-});
-
-benchStreaming("createATR(14)", () => {
-  const ind = createATR(14);
-  for (let i = 0; i < benchLen; i++) ind.next({ high: benchHigh[i], low: benchLow[i], close: benchClose[i] });
-});
-
-benchStreaming("createBBANDS(20,2)", () => {
-  const ind = createBBANDS(20, 2);
-  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
-});
-
-benchStreaming("createRealizedVol(30)", () => {
-  const ind = createRealizedVolatility(30, 365);
-  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
-});
-
-benchStreaming("createVolatilityRegime(30)", () => {
-  const ind = createVolatilityRegime(30, 365, -0.5, 0.5);
-  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
-});
-
-benchStreaming("createVolumeDelta(14)", () => {
-  const ind = createVolumeDelta(14);
-  for (let i = 0; i < benchLen; i++) ind.next({ open: benchOpen[i], close: benchClose[i], volume: benchVolume[i] });
-});
-
-benchStreaming("createOrderflowImbal(14)", () => {
-  const ind = createOrderflowImbalance(14);
-  for (let i = 0; i < benchLen; i++) ind.next({ open: benchOpen[i], close: benchClose[i], volume: benchVolume[i] });
-});
-
