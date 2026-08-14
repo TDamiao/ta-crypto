@@ -124,6 +124,7 @@ GitHub Actions and Release Please are the single release authority. Conventional
 
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
+- [Dependency security policy](docs/dependency-security.md)
 - [Release policy](docs/release-policy.md)
 - [Performance policy](docs/performance.md)
 - [Roadmap](ROADMAP.md)

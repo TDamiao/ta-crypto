@@ -35,3 +35,4 @@ You will receive an initial response acknowledging receipt within 48 hours. If c
 4. **npm Trusted Publishing & OIDC**: Releases use OpenID Connect (OIDC) identity federation between GitHub Actions and npm within the protected GitHub Environment `npm-publish` (with required human reviewer approval, admin bypass disabled, and restricted to `main`), eliminating long-lived npm tokens.
 5. **Cryptographic Provenance**: Published packages include verifiable SLSA provenance attestations signed by npm/Sigstore.
 6. **Software Bill of Materials (SBOM)**: Every release generates canonical SPDX 2.3 and CycloneDX 1.5 SBOMs matching the exact packed `.tgz` artifact.
+7. **Automated Dependency Audit Gate**: CI and release pipelines enforce `npm run security:audit`. Critical findings and unexcepted High findings block builds immediately. See [Dependency Security Policy](docs/dependency-security.md).

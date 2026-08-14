@@ -86,6 +86,7 @@ Local commands do not create release commits, tags, GitHub Releases, or npm publ
   ```
 - **Software Bill of Materials (SBOM)**: Every release generates canonical SPDX 2.3 (`ta-crypto-<version>.sbom.spdx.json`) and CycloneDX 1.5 (`ta-crypto-<version>.sbom.cdx.json`) SBOMs capturing exact artifact SHA-256/SHA-512 hashes, licensing, and package contents.
 - **Immutable GitHub Actions Pinning**: All GitHub Actions in `.github/workflows/*.yml` are pinned to immutable 40-character commit SHAs with version comments, continuously enforced by `npm run check:actions` and updated via Dependabot.
+- **Automated Dependency Audit Gate**: CI and release pipelines execute `npm run security:audit`. Critical vulnerabilities and unexcepted High vulnerabilities block publication immediately. Full policy is detailed in [Dependency Security Policy](dependency-security.md).
 
 ### Environment Protection Rules (`npm-publish`)
 
