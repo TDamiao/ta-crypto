@@ -43,6 +43,10 @@ export function measureBenchmark(name, fn, options = {}) {
   const sampleCount = Math.max(1, options.sampleCount ?? 7);
   const innerIterations = Math.max(1, options.innerIterations ?? 1);
 
+  if (typeof global !== "undefined" && typeof global.gc === "function") {
+    try { global.gc(); } catch (_) {}
+  }
+
   // Warm-up runs to trigger V8 tier-up and JIT optimization
   for (let i = 0; i < warmupRuns; i++) {
     for (let k = 0; k < innerIterations; k++) {

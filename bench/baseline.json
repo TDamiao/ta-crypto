@@ -7,218 +7,218 @@
     "batch.sma20.10k": {
       "name": "sma(20)",
       "datasetSize": 10000,
-      "medianMs": 0.0892,
-      "opsPerSec": 112097318
+      "medianMs": 0.0844,
+      "opsPerSec": 118530038
     },
     "batch.ema20.10k": {
       "name": "ema(20)",
       "datasetSize": 10000,
-      "medianMs": 0.0882,
-      "opsPerSec": 113378685
+      "medianMs": 0.1148,
+      "opsPerSec": 87133213
     },
     "batch.rsi14.10k": {
       "name": "rsi(14)",
       "datasetSize": 10000,
-      "medianMs": 0.1019,
-      "opsPerSec": 98175699
+      "medianMs": 0.0919,
+      "opsPerSec": 108784335
     },
     "batch.macd.10k": {
       "name": "macd(12,26,9)",
       "datasetSize": 10000,
-      "medianMs": 0.3278,
-      "opsPerSec": 30509515
+      "medianMs": 0.3279,
+      "opsPerSec": 30500972
     },
     "batch.bbands20.10k": {
       "name": "bbands(20,2)",
       "datasetSize": 10000,
-      "medianMs": 0.2726,
-      "opsPerSec": 36689412
+      "medianMs": 0.2432,
+      "opsPerSec": 41117035
     },
     "batch.atr14.10k": {
       "name": "atr(14)",
       "datasetSize": 10000,
-      "medianMs": 0.3144,
-      "opsPerSec": 31802408
+      "medianMs": 0.2645,
+      "opsPerSec": 37813131
     },
     "batch.adx14.10k": {
       "name": "adx(14)",
       "datasetSize": 10000,
-      "medianMs": 0.7313,
-      "opsPerSec": 13673655
+      "medianMs": 0.6453,
+      "opsPerSec": 15497533
     },
     "batch.mfi14.10k": {
       "name": "mfi(14)",
       "datasetSize": 10000,
-      "medianMs": 0.2612,
-      "opsPerSec": 38286070
+      "medianMs": 0.2225,
+      "opsPerSec": 44943820
     },
     "batch.vwap20.10k": {
       "name": "vwap(20)",
       "datasetSize": 10000,
-      "medianMs": 0.1856,
-      "opsPerSec": 53864799
+      "medianMs": 0.1931,
+      "opsPerSec": 51779935
     },
     "batch.volumeDelta14.10k": {
       "name": "volumeDelta(14)",
       "datasetSize": 10000,
-      "medianMs": 0.1993,
-      "opsPerSec": 50165144
+      "medianMs": 0.2202,
+      "opsPerSec": 45409837
     },
     "batch.orderflowImbal14.10k": {
       "name": "orderflowImbalance(14)",
       "datasetSize": 10000,
-      "medianMs": 0.2109,
-      "opsPerSec": 47410217
+      "medianMs": 0.2054,
+      "opsPerSec": 48691418
     },
     "batch.realizedVol30.10k": {
       "name": "realizedVolatility(30)",
       "datasetSize": 10000,
-      "medianMs": 0.1321,
-      "opsPerSec": 75709741
+      "medianMs": 0.1313,
+      "opsPerSec": 76151835
     },
     "batch.volatilityRegime30.10k": {
       "name": "volatilityRegime(30)",
       "datasetSize": 10000,
-      "medianMs": 0.2483,
-      "opsPerSec": 40277918
+      "medianMs": 0.2436,
+      "opsPerSec": 41052319
     },
     "batch.sma20.100k": {
       "name": "sma(20)",
       "datasetSize": 100000,
-      "medianMs": 0.6874,
-      "opsPerSec": 145472214
+      "medianMs": 0.7272,
+      "opsPerSec": 137504297
     },
     "batch.ema20.100k": {
       "name": "ema(20)",
       "datasetSize": 100000,
-      "medianMs": 0.9741,
-      "opsPerSec": 102654017
+      "medianMs": 0.9262,
+      "opsPerSec": 107966992
     },
     "batch.rsi14.100k": {
       "name": "rsi(14)",
       "datasetSize": 100000,
-      "medianMs": 1.0941,
-      "opsPerSec": 91402456
+      "medianMs": 1.0587,
+      "opsPerSec": 94458409
     },
     "batch.macd.100k": {
       "name": "macd(12,26,9)",
       "datasetSize": 100000,
-      "medianMs": 4.79,
-      "opsPerSec": 20877010
+      "medianMs": 4.381,
+      "opsPerSec": 22826058
     },
     "batch.bbands20.100k": {
       "name": "bbands(20,2)",
       "datasetSize": 100000,
-      "medianMs": 3.9347,
-      "opsPerSec": 25415115
+      "medianMs": 2.1922,
+      "opsPerSec": 45616963
     },
     "batch.atr14.100k": {
       "name": "atr(14)",
       "datasetSize": 100000,
-      "medianMs": 2.9348,
-      "opsPerSec": 34073727
+      "medianMs": 2.3966,
+      "opsPerSec": 41725343
     },
     "batch.adx14.100k": {
       "name": "adx(14)",
       "datasetSize": 100000,
-      "medianMs": 12.1263,
-      "opsPerSec": 8246545
+      "medianMs": 12.8154,
+      "opsPerSec": 7803127
     },
     "batch.mfi14.100k": {
       "name": "mfi(14)",
       "datasetSize": 100000,
-      "medianMs": 2.9315,
-      "opsPerSec": 34112229
+      "medianMs": 2.3501,
+      "opsPerSec": 42550928
     },
     "batch.vwap20.100k": {
       "name": "vwap(20)",
       "datasetSize": 100000,
-      "medianMs": 2.2633,
-      "opsPerSec": 44182628
+      "medianMs": 1.7978,
+      "opsPerSec": 55623818
     },
     "batch.volumeDelta14.100k": {
       "name": "volumeDelta(14)",
       "datasetSize": 100000,
-      "medianMs": 2.8233,
-      "opsPerSec": 35419651
+      "medianMs": 2.2389,
+      "opsPerSec": 44665289
     },
     "batch.orderflowImbal14.100k": {
       "name": "orderflowImbalance(14)",
       "datasetSize": 100000,
-      "medianMs": 2.3901,
-      "opsPerSec": 41838457
+      "medianMs": 2.3368,
+      "opsPerSec": 42793729
     },
     "batch.realizedVol30.100k": {
       "name": "realizedVolatility(30)",
       "datasetSize": 100000,
-      "medianMs": 3.2387,
-      "opsPerSec": 30876110
+      "medianMs": 1.3883,
+      "opsPerSec": 72031008
     },
     "batch.volatilityRegime30.100k": {
       "name": "volatilityRegime(30)",
       "datasetSize": 100000,
-      "medianMs": 2.788,
-      "opsPerSec": 35868540
+      "medianMs": 2.7526,
+      "opsPerSec": 36328959
     },
     "streaming.sma20.100k": {
       "name": "createSMA(20)",
       "datasetSize": 100000,
-      "medianMs": 0.8626,
-      "opsPerSec": 115922473
+      "medianMs": 0.7988,
+      "opsPerSec": 125195618
     },
     "streaming.ema20.100k": {
       "name": "createEMA(20)",
       "datasetSize": 100000,
-      "medianMs": 0.6039,
-      "opsPerSec": 165597185
+      "medianMs": 0.5598,
+      "opsPerSec": 178624697
     },
     "streaming.rsi14.100k": {
       "name": "createRSI(14)",
       "datasetSize": 100000,
-      "medianMs": 1.3476,
-      "opsPerSec": 74204619
+      "medianMs": 1.3043,
+      "opsPerSec": 76667538
     },
     "streaming.macd.100k": {
       "name": "createMACD(12,26,9)",
       "datasetSize": 100000,
-      "medianMs": 1.8529,
-      "opsPerSec": 53970779
+      "medianMs": 1.7334,
+      "opsPerSec": 57690921
     },
     "streaming.atr14.100k": {
       "name": "createATR(14)",
       "datasetSize": 100000,
-      "medianMs": 0.809,
-      "opsPerSec": 123606186
+      "medianMs": 0.7406,
+      "opsPerSec": 135028754
     },
     "streaming.bbands20.100k": {
       "name": "createBBANDS(20,2)",
       "datasetSize": 100000,
-      "medianMs": 2.3045,
-      "opsPerSec": 43392975
+      "medianMs": 2.2855,
+      "opsPerSec": 43754906
     },
     "streaming.realizedVol30.100k": {
       "name": "createRealizedVol(30)",
       "datasetSize": 100000,
-      "medianMs": 2.4675,
-      "opsPerSec": 40526504
+      "medianMs": 2.3906,
+      "opsPerSec": 41830065
     },
     "streaming.volatilityRegime30.100k": {
       "name": "createVolatilityRegime(30)",
       "datasetSize": 100000,
-      "medianMs": 7.6348,
-      "opsPerSec": 13097863
+      "medianMs": 7.5443,
+      "opsPerSec": 13254980
     },
     "streaming.volumeDelta14.100k": {
       "name": "createVolumeDelta(14)",
       "datasetSize": 100000,
-      "medianMs": 1.4353,
-      "opsPerSec": 69672258
+      "medianMs": 1.3315,
+      "opsPerSec": 75100954
     },
     "streaming.orderflowImbal14.100k": {
       "name": "createOrderflowImbal(14)",
       "datasetSize": 100000,
-      "medianMs": 2.1229,
-      "opsPerSec": 47104543
+      "medianMs": 2.081,
+      "opsPerSec": 48052850
     }
   }
 }
