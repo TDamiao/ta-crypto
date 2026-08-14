@@ -1,75 +1,98 @@
 # Compatibility
 
-`ta-crypto` uses two different kinds of evidence:
+`ta-crypto` relies on two complementary tiers of numerical evidence:
 
-1. Golden fixtures detect changes from the project's recorded outputs.
-2. External comparisons evaluate selected indicators against TA-Lib, `technicalindicators`, and pandas-ta.
+1. **Golden Fixtures (`test/fixtures/golden.json`)**: Protect against internal regressions across versions with strict `1e-10` tolerances.
+2. **External Parity Matrix (`scripts/compat-policy.json`)**: Evaluates indicators against independent industry reference implementations: **TA-Lib** (Python/C), **`technicalindicators`** (Node.js), and **`pandas-ta`** (Python).
 
-Golden parity is regression protection. It is not independent proof that a formula is correct.
+---
 
-## Policy source
+## Policy Source of Truth
 
-Tolerance, burn-in, alignment, and blocking-reference settings live in [`scripts/compat-policy.json`](../scripts/compat-policy.json).
+Tolerances, burn-in periods, alignment rules, and blocking reference definitions are formally declared in [`scripts/compat-policy.json`](../scripts/compat-policy.json) and enforced via automated test assertions.
 
-Reference series are left-padded to input length. Comparisons begin at the configured burn-in and include only overlapping non-null values.
+Reference series are left-padded with `null` to match the input length. Comparisons begin at the configured `burnIn` index and evaluate only overlapping non-null data points.
 
-## Current external matrix
+---
 
-| Indicator | Burn-in | Tolerance | Blocking references | Non-blocking reference |
-| --- | ---: | ---: | --- | --- |
-| SMA(14) | 14 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
-| EMA(14) | 14 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
-| RSI(14) | 28 | `5e-2` | TA-Lib, `technicalindicators` | pandas-ta |
-| MACD(12,26,9) | 80 | `2e-2` | TA-Lib, `technicalindicators` | pandas-ta |
-| BBANDS(20,2) | 20 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
-| ATR(14) | 56 | `1.5e-1` | TA-Lib, `technicalindicators` | pandas-ta |
-| ADX/+DI/-DI(14) | 90 | `1.5` | TA-Lib, `technicalindicators` | pandas-ta |
+## External Parity Matrix
 
-TA-Lib and `technicalindicators` are blocking checks in CI. pandas-ta is environment-dependent telemetry and may warn or skip without passing a blocking mismatch.
+| Indicator | Formula / Standard Reference | Burn-in | Tolerance | Blocking References | Non-Blocking Reference |
+| --- | --- | ---: | ---: | --- | --- |
+| **SMA(14)** | Simple Moving Average: $\frac{1}{N}\sum p_i$ | 14 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
+| **EMA(14)** | Exponential Moving Average seeded by SMA of first $N$ prices; $\alpha = \frac{2}{N+1}$ | 14 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
+| **RSI(14)** | Wilder's Relative Strength Index using RMA smoothing of gains/losses | 28 | `5e-2` | TA-Lib, `technicalindicators` | pandas-ta |
+| **MACD(12,26,9)** | Appel (1979): Fast EMA(12) - Slow EMA(26); Signal = EMA(MACD, 9); Hist = MACD - Signal | 80 | `2e-2` | TA-Lib, `technicalindicators` | pandas-ta |
+| **BBANDS(20,2)** | Bollinger Bands: Basis = SMA(20); Bands = Basis $\pm 2\sigma$ (population standard deviation) | 20 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
+| **ATR(14)** | Wilder's Average True Range using RMA smoothing over True Range | 56 | `1.5e-1` | TA-Lib, `technicalindicators` | pandas-ta |
+| **NATR(14)** | Normalized ATR: $\frac{\text{ATR}(14)}{\text{close}} \times 100$ | 56 | `1.5e-1` | TA-Lib | pandas-ta |
+| **ADX(14)** | Wilder's Average Directional Movement Index (+DI, -DI, DX smoothed via RMA) | 90 | `1.5` | TA-Lib, `technicalindicators` | pandas-ta |
+| **OBV** | Granville (1963): On-Balance Volume running sum of directional candle volume | 1 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
+| **MFI(14)** | Quong & May (1989): Money Flow Index based on typical price money flow ratio | 28 | `1.5e-1` | TA-Lib, `technicalindicators` | pandas-ta |
+| **STOCH(14,3)** | Lane (1950s): Stochastic Oscillator $\%K = \frac{C - LL}{HH - LL}\times 100$, $\%D = \text{SMA}(\%K, 3)$ | 20 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
 
-## Why ATR and ADX use burn-in
+*Note: TA-Lib and `technicalindicators` are blocking CI gates. `pandas-ta` serves as non-blocking telemetry.*
 
-The current ATR uses a project-local RMA initialized from the first `period` true-range values and first emits at index `period - 1`.
+---
 
-The current ADX derives directional movement and true range, applies the same RMA style, and first permits output at index `period - 1`. Other libraries commonly delay ADX longer and initialize intermediate series differently.
+## Deterministic Market-Shape Fixtures
 
-The external matrix therefore compares ATR and ADX only after extended burn-in. Before that point, outputs from different libraries should not be assumed interchangeable.
+External compatibility tests execute against four distinct deterministic market scenarios generated in `scripts/export-compat-vectors.js`:
 
-## Golden coverage
+1. **Cycle (`cycle`)**: Sinusoidal oscillating cyclical waves across 320 bars.
+2. **Trend (`trend`)**: Exponential bullish expansion with pullbacks and volume acceleration.
+3. **Chop (`chop`)**: High-frequency mean-reverting chop with alternating price oscillations.
+4. **Volatile (`volatile`)**: Heavy regime shocks, periodic gap jumps, and volume surges.
 
-The golden fixture currently locks:
+---
 
-- SMA, EMA, RSI, MACD, BBANDS, ATR, and ADX;
-- session VWAP;
-- stateful RSI and session VWAP values;
-- batch/stateful parity for current stateful constructors through tests.
+## Initialization and Burn-In Semantics
 
-The shared tolerance used by the golden/stateful assertions is generally `1e-10`.
+Recursive smoothing indicators (Wilder's RMA in RSI, ATR, NATR, ADX, and EMA in MACD) require documented burn-in periods to converge with external libraries due to initialization choices:
 
-## Run the checks
+- **ATR & NATR**: `ta-crypto` initializes Wilder's RMA from the arithmetic mean of the first `period` true ranges and produces its first valid output at index `period - 1`.
+- **ADX / +DI / -DI**: `ta-crypto` initializes directional movement RMA smoothing at index `period - 1`. Other libraries (e.g. TA-Lib) delay initial ADX output until index `2 * period - 1` and accumulate seed averages differently. After 90 bars of burn-in, outputs converge within `1.5` index points.
+- **RSI**: Initialized with SMA of gains and losses over the first $N$ price changes, emitting at index $N$.
 
+---
+
+## Golden-Only Indicators
+
+Indicators specifically designed for crypto-market mechanics or custom financial models are verified via internal golden parity suites (`test/fixtures/golden.json`) with `1e-10` tolerance:
+
+- `vwapSession` / `createVWAPSession` (session-aware VWAP with boundary reset)
+- `fundingRateCumulative` & `fundingRateAPR` (perpetual futures funding arbitrage metrics)
+- `realizedVolatility` & `createRealizedVolatility` (log-return annualized standard deviation)
+- `volatilityRegime` & `createVolatilityRegime` (z-score classified volatility regime transitions)
+- `volumeDelta` & `createVolumeDelta` (directional bar volume accumulation)
+- `orderflowImbalance` & `createOrderflowImbalance` (signed volume orderflow pressure ratio)
+- `sumPeriodicReturns`, `percentReturn`, and `logReturn` (periodic, compounded, and logarithmic returns)
+
+---
+
+## Running Compatibility Checks
+
+To validate against Node.js `technicalindicators`:
 ```bash
-npm run test:golden
 npm run test:compat:technicalindicators
 ```
 
-For Python references:
-
+To validate against Python reference implementations (TA-Lib and pandas-ta in Python 3.12):
 ```bash
 python -m pip install -r scripts/requirements-compat.txt
 npm run test:compat:python
 ```
 
-CI uses Linux and Python 3.12 for the full Python compatibility job. Local availability of TA-Lib and pandas-ta depends on platform packages and wheels.
+To run the complete test and compatibility suite:
+```bash
+npm run test && npm run test:golden && npm run test:compat:technicalindicators
+```
 
-## Current coverage limits
+---
 
-External compatibility does not yet cover every exported indicator or multiple market-shape fixtures. NATR, returns, MFI, periodic VWAP, realized volatility, and crypto-specific indicators need additional independent evidence.
-
-Expansion of the matrix, clearer initialization evidence, and policy/vector consistency checks are tracked in [issue #20](https://github.com/TDamiao/ta-crypto/issues/20).
-
-## Related pages
+## Related Pages
 
 - [Indicators](indicators.md)
 - [Stateful API](stateful.md)
+- [Crypto utilities](crypto.md)
 - [Trust and verification](trust.md)

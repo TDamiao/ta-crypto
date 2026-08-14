@@ -1,14 +1,85 @@
 {
   "version": 1,
   "indicators": {
-    "sma": { "tolerance": 1e-10, "burnIn": 14 },
-    "ema": { "tolerance": 1e-10, "burnIn": 14 },
-    "rsi": { "tolerance": 5e-2, "burnIn": 28 },
-    "macd": { "tolerance": 2e-2, "burnIn": 80 },
-    "bbands": { "tolerance": 1e-10, "burnIn": 20 },
-    "atr": { "tolerance": 1.5e-1, "burnIn": 56 },
-    "adx": { "tolerance": 1.5, "burnIn": 90 }
+    "sma": {
+      "tolerance": 1e-10,
+      "burnIn": 14,
+      "formula": "Simple Moving Average over rolling window: sum(prices) / period",
+      "reference": "TA-Lib SMA / technicalindicators SMA"
+    },
+    "ema": {
+      "tolerance": 1e-10,
+      "burnIn": 14,
+      "formula": "Exponential Moving Average seeded by SMA of first N prices; k = 2 / (period + 1)",
+      "reference": "TA-Lib EMA / technicalindicators EMA"
+    },
+    "rsi": {
+      "tolerance": 5e-2,
+      "burnIn": 28,
+      "formula": "Relative Strength Index using Wilder RMA of gains and losses",
+      "reference": "Wilder (1978) / TA-Lib RSI / technicalindicators RSI"
+    },
+    "macd": {
+      "tolerance": 2e-2,
+      "burnIn": 80,
+      "formula": "MACD line = EMA(fast) - EMA(slow); Signal = EMA(MACD, signalPeriod); Histogram = MACD - Signal",
+      "reference": "Appel (1979) / TA-Lib MACD / technicalindicators MACD"
+    },
+    "bbands": {
+      "tolerance": 1e-10,
+      "burnIn": 20,
+      "formula": "Basis = SMA(period); Upper/Lower = Basis +/- stdDevMultiplier * PopulationStdDev",
+      "reference": "Bollinger (2001) / TA-Lib BBANDS / technicalindicators BollingerBands"
+    },
+    "atr": {
+      "tolerance": 1.5e-1,
+      "burnIn": 56,
+      "formula": "Average True Range using Wilder RMA of True Range, seeded by SMA of first period true ranges",
+      "reference": "Wilder (1978) / TA-Lib ATR / technicalindicators ATR"
+    },
+    "natr": {
+      "tolerance": 1.5e-1,
+      "burnIn": 56,
+      "formula": "Normalized Average True Range: (ATR(period) / close) * 100",
+      "reference": "TA-Lib NATR"
+    },
+    "adx": {
+      "tolerance": 1.5,
+      "burnIn": 90,
+      "formula": "Average Directional Movement Index using Wilder smoothing of +DI/-DI and DX",
+      "reference": "Wilder (1978) / TA-Lib ADX / technicalindicators ADX"
+    },
+    "obv": {
+      "tolerance": 1e-10,
+      "burnIn": 1,
+      "formula": "On-Balance Volume running sum of directional candle volume",
+      "reference": "Granville (1963) / TA-Lib OBV / technicalindicators OBV"
+    },
+    "mfi": {
+      "tolerance": 1.5e-1,
+      "burnIn": 28,
+      "formula": "Money Flow Index = 100 - 100 / (1 + positiveMoneyFlow / negativeMoneyFlow)",
+      "reference": "Quong & May (1989) / TA-Lib MFI / technicalindicators MFI"
+    },
+    "stoch": {
+      "tolerance": 1e-10,
+      "burnIn": 20,
+      "formula": "Stochastic Oscillator: %K = (close - LL) / (HH - LL) * 100, %D = SMA(%K, dLength)",
+      "reference": "Lane (1950s) / TA-Lib STOCH / technicalindicators Stochastic"
+    }
   },
+  "goldenOnlyIndicators": [
+    "vwap",
+    "vwapSession",
+    "fundingRateCumulative",
+    "fundingRateAPR",
+    "realizedVolatility",
+    "volatilityRegime",
+    "volumeDelta",
+    "orderflowImbalance",
+    "sumPeriodicReturns",
+    "percentReturn"
+  ],
   "rules": {
     "alignment": "left-pad reference series with null/NaN to full length and compare only overlapping non-null points",
     "blockingReferences": ["TA-Lib", "technicalindicators"],
