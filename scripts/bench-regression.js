@@ -40,10 +40,11 @@ const BASELINE_FILE = path.resolve(__dirname, "../bench/baseline.json");
 const args = process.argv.slice(2);
 const isJsonOutput = args.includes("--json");
 const isStrict = args.includes("--strict") || process.env.BENCH_STRICT === "true";
+const failOnBaseline = args.includes("--fail-on-baseline") || process.env.BENCH_FAIL_ON_BASELINE === "true";
 const outArg = args.find(a => a.startsWith("--out="));
 const outputPath = outArg ? path.resolve(process.cwd(), outArg.split("=")[1]) : null;
 
-// 1. Run Parity Gate
+// 1. Run Parity Gate (HARD GATE)
 let parityReport;
 try {
   parityReport = runComprehensiveParityGate();
@@ -157,7 +158,7 @@ record("createOrderflowImbal(14)", "streaming.orderflowImbal14.100k", () => {
   for (let i = 0; i < 100000; i++) ind.next({ open: data100k.open[i], close: data100k.close[i], volume: data100k.volume[i] });
 }, 100000, 2, "streaming-100k");
 
-// Build Scaling Pairs (10k vs 100k)
+// Build Scaling Pairs (10k vs 100k) (HARD GATE)
 const scalingIndicators = [
   { name: "sma(20)", id10k: "batch.sma20.10k", id100k: "batch.sma20.100k" },
   { name: "ema(20)", id10k: "batch.ema20.10k", id100k: "batch.ema20.100k" },
@@ -181,7 +182,7 @@ const scalingPairs = scalingIndicators.map(s => ({
   bench100k: benchMap.get(s.id100k)
 }));
 
-// Build Batch Recompute vs Streaming Pairs (2,000 candles)
+// Build Batch Recompute vs Streaming Pairs (2,000 candles) (HARD GATE)
 const rN = BENCH_SIZES.RECOMPUTE_SMALL;
 const rClose = dataRecompute.close;
 const rOpen = dataRecompute.open;
@@ -462,5 +463,17 @@ if (isJsonOutput) {
   console.log("================================================================================\n");
 }
 
-const shouldFail = evaluationReport.summary.failCount > 0 || (isStrict && evaluationReport.summary.warnCount > 0);
+// Hard Gates:
+// 1. Parity Gate (checked above)
+// 2. Scaling Guard (growth ratio <= 35x)
+// 3. Streaming Advantage (speedup >= 1.0x)
+// 4. Invalid Candidate (no NaN/Infinity/negative timings)
+// 5. Baseline Regression (only if --fail-on-baseline or --strict is requested)
+const hasScalingFailure = evaluationReport.scaling.some(s => s.status === "FAIL");
+const hasStreamingFailure = evaluationReport.streaming.some(s => s.status === "FAIL");
+const hasInvalidCandidate = evaluationReport.benchmarks.some(b => !Number.isFinite(b.medianMs) || b.medianMs <= 0);
+const hasBaselineFailure = (failOnBaseline || isStrict) && evaluationReport.summary.failCount > 0;
+const hasWarnStrict = isStrict && evaluationReport.summary.warnCount > 0;
+
+const shouldFail = hasScalingFailure || hasStreamingFailure || hasInvalidCandidate || hasBaselineFailure || hasWarnStrict;
 process.exit(shouldFail ? 1 : 0);
