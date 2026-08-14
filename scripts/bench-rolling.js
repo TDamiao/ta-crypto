@@ -3,6 +3,18 @@ import { bbands, sma, vwap } from "../dist/core/overlap.js";
 import { mfi } from "../dist/core/volume.js";
 import { orderflowImbalance, volatilityRegime, volumeDelta } from "../dist/core/crypto.js";
 import { realizedVolatility } from "../dist/core/performance.js";
+import {
+  createSMA,
+  createEMA,
+  createRSI,
+  createMACD,
+  createATR,
+  createBBANDS,
+  createRealizedVolatility,
+  createVolatilityRegime,
+  createVolumeDelta,
+  createOrderflowImbalance
+} from "../dist/stateful.js";
 
 function makeSeries(length, start = 100) {
   const values = new Array(length);
@@ -244,3 +256,70 @@ for (const length of [10_000, 100_000]) {
   report("realizedVol(30)", length, () => legacyRealizedVol(close, 30), () => realizedVolatility(close, 30));
   report("volatilityRegime(30)", length, () => legacyVolatilityRegime(close, 30), () => volatilityRegime(close, 30));
 }
+
+console.log("\n--- Streaming O(1) Throughput Benchmark (100k items) ---");
+const benchLen = 100_000;
+const benchClose = makeSeries(benchLen);
+const benchOpen = benchClose.map((v, i) => v + Math.sin(i * 0.01) * 0.5);
+const benchHigh = benchClose.map((v, i) => Math.max(v, benchOpen[i]) + 1);
+const benchLow = benchClose.map((v, i) => Math.min(v, benchOpen[i]) - 1);
+const benchVolume = benchClose.map((_, i) => 10 + (i % 50));
+
+function benchStreaming(name, fn) {
+  const t0 = performance.now();
+  fn();
+  const elapsed = performance.now() - t0;
+  const opsPerSec = (benchLen / (elapsed / 1000)).toLocaleString("en-US", { maximumFractionDigits: 0 });
+  console.log(`${name.padEnd(26)}: ${elapsed.toFixed(2)} ms total (${opsPerSec} ops/sec)`);
+}
+
+benchStreaming("createSMA(20)", () => {
+  const ind = createSMA(20);
+  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
+});
+
+benchStreaming("createEMA(20)", () => {
+  const ind = createEMA(20);
+  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
+});
+
+benchStreaming("createRSI(14)", () => {
+  const ind = createRSI(14);
+  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
+});
+
+benchStreaming("createMACD(12,26,9)", () => {
+  const ind = createMACD(12, 26, 9);
+  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
+});
+
+benchStreaming("createATR(14)", () => {
+  const ind = createATR(14);
+  for (let i = 0; i < benchLen; i++) ind.next({ high: benchHigh[i], low: benchLow[i], close: benchClose[i] });
+});
+
+benchStreaming("createBBANDS(20,2)", () => {
+  const ind = createBBANDS(20, 2);
+  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
+});
+
+benchStreaming("createRealizedVol(30)", () => {
+  const ind = createRealizedVolatility(30, 365);
+  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
+});
+
+benchStreaming("createVolatilityRegime(30)", () => {
+  const ind = createVolatilityRegime(30, 365, -0.5, 0.5);
+  for (let i = 0; i < benchLen; i++) ind.next(benchClose[i]);
+});
+
+benchStreaming("createVolumeDelta(14)", () => {
+  const ind = createVolumeDelta(14);
+  for (let i = 0; i < benchLen; i++) ind.next({ open: benchOpen[i], close: benchClose[i], volume: benchVolume[i] });
+});
+
+benchStreaming("createOrderflowImbal(14)", () => {
+  const ind = createOrderflowImbalance(14);
+  for (let i = 0; i < benchLen; i++) ind.next({ open: benchOpen[i], close: benchClose[i], volume: benchVolume[i] });
+});
+

@@ -56,7 +56,8 @@
     "example:funding": "npm run build && node ./examples/funding-arbitrage.mjs",
     "example:returns": "npm run build && node ./examples/returns-compounding.mjs",
     "example:rsi:compat": "npm run build && node ./examples/rsi-technicalindicators-check.mjs",
-    "example:all": "npm run example:rsi && npm run example:vwap && npm run example:funding && npm run example:returns && npm run example:rsi:compat"
+    "example:stateful": "npm run build && node ./examples/stateful-streaming.mjs",
+    "example:all": "npm run example:rsi && npm run example:vwap && npm run example:funding && npm run example:returns && npm run example:rsi:compat && npm run example:stateful"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",

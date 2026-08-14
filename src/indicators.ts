@@ -21,3 +21,11 @@ export {
   mfi,
   adx
 } from "./api.js";
+export {
+  createSMA,
+  createEMA,
+  createRSI,
+  createMACD,
+  createATR,
+  createBBANDS
+} from "./stateful.js";

@@ -29,7 +29,19 @@ export {
   orderflowImbalance
 } from "./api.js";
 export { pluckOpen, pluckHigh, pluckLow, pluckClose, pluckVolume, toOHLCV } from "./candles.js";
-export { createSMA, createEMA, createRSI, createVWAPSession } from "./stateful.js";
+export {
+  createSMA,
+  createEMA,
+  createRSI,
+  createMACD,
+  createATR,
+  createBBANDS,
+  createVWAPSession,
+  createRealizedVolatility,
+  createVolatilityRegime,
+  createVolumeDelta,
+  createOrderflowImbalance
+} from "./stateful.js";
 export * from "./types.js";
 
 import * as api from "./api.js";
@@ -41,4 +53,3 @@ export const ta = {
   ...candles,
   ...stateful
 };
-

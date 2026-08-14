@@ -58,3 +58,48 @@ export interface PercentReturnOptions {
    */
   cumulative?: boolean;
 }
+
+export type StatefulIndicator<TIn, TOut> = {
+  next(value: TIn): TOut;
+  reset(): void;
+};
+
+export type VWAPSessionInput = {
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  sessionId: string | number;
+};
+
+export type ATRInput = {
+  high: number;
+  low: number;
+  close: number;
+} | {
+  h: number;
+  l: number;
+  c: number;
+};
+
+export type OrderflowInput = {
+  open: number;
+  close: number;
+  volume: number;
+} | {
+  o: number;
+  c: number;
+  v: number;
+};
+
+export type MACDOutput = {
+  macd: number | null;
+  signal: number | null;
+  histogram: number | null;
+};
+
+export type BBANDSOutput = {
+  basis: number | null;
+  upper: number | null;
+  lower: number | null;
+};

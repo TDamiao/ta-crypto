@@ -7,4 +7,10 @@ export {
   volumeDelta,
   orderflowImbalance
 } from "./api.js";
-export { createVWAPSession } from "./stateful.js";
+export {
+  createVWAPSession,
+  createRealizedVolatility,
+  createVolatilityRegime,
+  createVolumeDelta,
+  createOrderflowImbalance
+} from "./stateful.js";

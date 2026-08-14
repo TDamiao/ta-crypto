@@ -26,7 +26,14 @@ import {
   createSMA,
   createEMA,
   createRSI,
-  createVWAPSession
+  createMACD,
+  createATR,
+  createBBANDS,
+  createVWAPSession,
+  createRealizedVolatility,
+  createVolatilityRegime,
+  createVolumeDelta,
+  createOrderflowImbalance
 } from "../dist/index.js";
 
 const close = [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110];
@@ -87,18 +94,32 @@ test("stateful constructors reject non-positive and non-integer periods", () => 
   const statefulFactories = [
     { name: "createSMA", fn: (p) => createSMA(p) },
     { name: "createEMA", fn: (p) => createEMA(p) },
-    { name: "createRSI", fn: (p) => createRSI(p) }
+    { name: "createRSI", fn: (p) => createRSI(p) },
+    { name: "createATR", fn: (p) => createATR(p) },
+    { name: "createBBANDS", fn: (p) => createBBANDS(p) },
+    { name: "createRealizedVolatility", fn: (p) => createRealizedVolatility(p) },
+    { name: "createVolatilityRegime", fn: (p) => createVolatilityRegime(p) },
+    { name: "createVolumeDelta", fn: (p) => createVolumeDelta(p) },
+    { name: "createOrderflowImbalance", fn: (p) => createOrderflowImbalance(p) }
   ];
 
   for (const { name, fn } of statefulFactories) {
     for (const p of invalidPeriods) {
       assert.throws(
         () => fn(p),
-        /period must be a positive integer/,
+        /(period|length) must be a positive integer/,
         `${name} did not reject invalid period: ${p}`
       );
     }
   }
+
+  // createMACD multi-period validation
+  for (const p of invalidPeriods) {
+    assert.throws(() => createMACD(p, 26, 9), /fastPeriod must be a positive integer/);
+    assert.throws(() => createMACD(12, p, 9), /slowPeriod must be a positive integer/);
+    assert.throws(() => createMACD(12, 26, p), /signalPeriod must be a positive integer/);
+  }
+  assert.throws(() => createMACD(26, 12, 9), /fast period .* must be less than slow period/);
 });
 
 test("bbands rejects negative and non-finite std multipliers", () => {

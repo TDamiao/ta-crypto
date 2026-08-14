@@ -38,33 +38,37 @@ Indicator results are aligned with the input. Values that need more history are 
 | Normalize candle objects or aliases | `toOHLCV`, `pluck*` | [Inputs and candles](docs/inputs.md) |
 | Calculate classic indicators in batch | `sma`, `rsi`, `macd`, `atr`, `adx`, and others | [Indicators](docs/indicators.md) |
 | Calculate funding, session VWAP, volatility regimes, or candle-derived orderflow | `ta-crypto/crypto` | [Crypto utilities](docs/crypto.md) |
-| Process prices or candles one at a time | `createSMA`, `createEMA`, `createRSI`, `createVWAPSession` | [Stateful API](docs/stateful.md) |
+| Process prices or candles one at a time | `createSMA`, `createEMA`, `createRSI`, `createMACD`, `createATR`, `createBBANDS`, `createVWAPSession`, `createRealizedVolatility`, `createVolatilityRegime`, `createVolumeDelta`, `createOrderflowImbalance` | [Stateful API](docs/stateful.md) |
 | Review tolerances and external references | compatibility scripts and policy | [Compatibility](docs/compatibility.md) |
 | Verify releases and project limitations | CI, tags, changelog, and trust policy | [Trust and verification](docs/trust.md) |
 
 ## Module imports
 
 ```ts
-import { sma } from "ta-crypto/indicators";
-import { vwapSession } from "ta-crypto/crypto";
+import { sma, createMACD } from "ta-crypto/indicators";
+import { vwapSession, createVolumeDelta } from "ta-crypto/crypto";
 import { toOHLCV } from "ta-crypto/candles";
-import { createRSI } from "ta-crypto/stateful";
+import { createRSI, createBBANDS } from "ta-crypto/stateful";
 ```
 
-The root `ta-crypto` entry point exports all public functions and types.
+The root `ta-crypto` entry point exports all public functions, stateful constructors, and types.
 
 ## Streaming example
 
 ```ts
-import { createEMA, createRSI } from "ta-crypto";
+import { createMACD, createATR, createBBANDS, createVolumeDelta } from "ta-crypto";
 
-const ema21 = createEMA(21);
-const rsi14 = createRSI(14);
+const macd = createMACD(12, 26, 9);
+const atr = createATR(14);
+const bbands = createBBANDS(20, 2);
+const volDelta = createVolumeDelta(14);
 
-for (const price of [100, 101, 102, 101, 103]) {
-  const ema = ema21.next(price);
-  const rsi = rsi14.next(price);
-  // Both values remain null until their warmup is complete.
+for (const candle of liveCandles) {
+  const m = macd.next(candle.close);       // { macd, signal, histogram }
+  const a = atr.next(candle);              // number | null
+  const bb = bbands.next(candle.close);    // { basis, upper, lower }
+  const vd = volDelta.next(candle);        // number | null
+  // Values remain null until individual indicator warmup is complete.
 }
 ```
 
@@ -74,9 +78,9 @@ See [Stateful API](docs/stateful.md) for warmup, parity, and reset behavior.
 
 - Batch overlap, momentum, volatility, performance, volume, and trend indicators.
 - Candle normalization for long keys and `o/h/l/c/v/t` aliases.
-- Stateful SMA, EMA, RSI, and session VWAP.
+- Stateful streaming constructors (`createSMA`, `createEMA`, `createRSI`, `createMACD`, `createATR`, `createBBANDS`, `createVWAPSession`, `createRealizedVolatility`, `createVolatilityRegime`, `createVolumeDelta`, `createOrderflowImbalance`).
 - Crypto-specific funding, volatility-regime, session-VWAP, and orderflow-proxy utilities.
-- Golden regression tests and external compatibility checks.
+- Golden regression tests and external compatibility checks against TA-Lib and `technicalindicators`.
 
 ## What is not included
 
