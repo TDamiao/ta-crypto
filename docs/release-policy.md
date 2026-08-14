@@ -137,7 +137,7 @@ Validate artifact hashes, version, tag and duplicate check
         ↓
 Upload tarball and SBOM evidence to workflow artifacts
         ↓
-npm Publication via Trusted Publishing (OIDC + Provenance)
+npm Publication via Trusted Publishing (OIDC + Provenance in npm-publish environment)
 ```
 
 ---
@@ -153,7 +153,7 @@ After a release workflow completes, verify:
 6. SBOM artifacts (SPDX 2.3 / CycloneDX 1.5) are attached to release evidence.
 
 ### Token Migration & Revocation Policy
-- The publication workflow uses GitHub Actions OIDC (`id-token: write`) exclusively and does not reference `NPM_TOKEN` or `NODE_AUTH_TOKEN`.
+- The publication workflow uses GitHub Actions OIDC (`id-token: write`) exclusively within the protected GitHub Environment `npm-publish` and does not reference `NPM_TOKEN` or `NODE_AUTH_TOKEN`.
 - Any legacy long-lived npm tokens remaining on the npm account should be manually revoked in the npm web console once the first OIDC release publication is confirmed.
 
 ### Failure Recovery Policy
