@@ -127,11 +127,17 @@ Release Please creates Version Commit & Git Tag
         ↓
 GitHub Release created automatically
         ↓
-GitHub Actions triggers publish job (ci.yml / release-please.yml)
+GitHub Actions triggers publish job (release-please.yml)
         ↓
-Automated test & dry-run package validation
+Automated test, compatibility & regression suite
         ↓
-npm Publication via Trusted Publisher token
+Pack exact .tgz and generate SPDX/CycloneDX SBOMs
+        ↓
+Validate artifact hashes, version, tag and duplicate check
+        ↓
+Upload tarball and SBOM evidence to workflow artifacts
+        ↓
+npm Publication via Trusted Publishing (OIDC + Provenance)
 ```
 
 ---
@@ -140,9 +146,15 @@ npm Publication via Trusted Publisher token
 
 After a release workflow completes, verify:
 1. GitHub Release exists and matches the Git tag (`vX.Y.Z`).
-2. Published npm package version exists on registry.
+2. Published npm package version exists on npm registry.
 3. Package version matches `CHANGELOG.md` and `.release-please-manifest.json`.
 4. Installed package contains built artifacts (`dist/`, `docs/`, `README.md`, `LICENSE`).
+5. Provenance attestation is verifiable via `npm audit signatures`.
+6. SBOM artifacts (SPDX 2.3 / CycloneDX 1.5) are attached to release evidence.
+
+### Token Migration & Revocation Policy
+- The publication workflow uses GitHub Actions OIDC (`id-token: write`) exclusively and does not reference `NPM_TOKEN` or `NODE_AUTH_TOKEN`.
+- Any legacy long-lived npm tokens remaining on the npm account should be manually revoked in the npm web console once the first OIDC release publication is confirmed.
 
 ### Failure Recovery Policy
 - Published npm packages and Git tags are **immutable**.

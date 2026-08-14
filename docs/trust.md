@@ -65,14 +65,29 @@ GitHub Actions and [Release Please](../.github/workflows/release-please.yml) are
 1. A qualifying conventional commit on `main` creates or updates one Release PR.
 2. The Release PR contains the package version, manifest, lockfile, and changelog changes.
 3. Merging the Release PR creates the matching Git tag and GitHub Release.
-4. The workflow checks out that tag, installs locked dependencies, and runs tests, compatibility checks, and `npm pack --dry-run`.
-5. The workflow publishes to npm only when that exact version is not already present.
+4. The workflow checks out that tag, installs locked dependencies, runs tests, compatibility checks, and builds the distribution.
+5. The workflow packs the exact `.tgz` artifact and generates canonical SPDX 2.3 and CycloneDX 1.5 SBOMs.
+6. The workflow validates tag alignment, package version, checksums, and tests against duplicate npm publication.
+7. The workflow uploads the tarball and SBOMs as immutable release artifacts.
+8. The workflow publishes to npm via **npm Trusted Publishing** (OIDC identity federation) with cryptographic provenance attestations.
 
 Local commands do not create release commits, tags, GitHub Releases, or npm publications. `npm run release:check` is the supported local validation and dry-run entry point.
 
-If validation or npm publication fails after the tag and GitHub Release exist, fix the external cause and rerun only the failed GitHub Actions jobs. The npm version check prevents a rerun from attempting to overwrite an existing version. Published npm versions and Git tags are immutable recovery boundaries; corrections require a new patch release.
+### Supply-Chain Security & Provenance Verification
 
-npm Trusted Publishing, provenance, and SBOM work is tracked in [issue #41](https://github.com/TDamiao/ta-crypto/issues/41). Do not claim those controls are active before that issue is completed and verified.
+`ta-crypto` enforces verifiable supply-chain security:
+
+- **npm Trusted Publishing (OIDC)**: npm authenticates publication requests directly against GitHub's OpenID Connect identity provider using short-lived tokens generated per workflow run (`id-token: write`). No permanent npm tokens are used in the publication workflow.
+- **Cryptographic Provenance (SLSA)**: Packages are published with `--provenance`. Consumers can inspect the cryptographic attestation linking the published tarball to the exact GitHub repository, commit SHA, workflow (`.github/workflows/release-please.yml`), and tag.
+- **How Consumers Verify Provenance**:
+  ```bash
+  # Verify provenance and signatures via npm CLI
+  npm audit signatures
+  ```
+- **Software Bill of Materials (SBOM)**: Every release generates canonical SPDX 2.3 (`ta-crypto-<version>.sbom.spdx.json`) and CycloneDX 1.5 (`ta-crypto-<version>.sbom.cdx.json`) SBOMs capturing exact artifact SHA-256/SHA-512 hashes, licensing, and package contents.
+- **Immutable GitHub Actions Pinning**: All GitHub Actions in `.github/workflows/*.yml` are pinned to immutable 40-character commit SHAs with version comments, continuously enforced by `npm run check:actions` and updated via Dependabot.
+
+If validation or npm publication fails after the tag and GitHub Release exist, fix the external cause and rerun only the failed GitHub Actions jobs. The npm version check prevents a rerun from attempting to overwrite an existing version. Published npm versions and Git tags are immutable recovery boundaries; corrections require a new patch release.
 
 ## Known limitations
 

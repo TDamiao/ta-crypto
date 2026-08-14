@@ -123,6 +123,8 @@ GitHub Actions and Release Please are the single release authority. Conventional
 ## Project references
 
 - [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Release policy](docs/release-policy.md)
 - [Performance policy](docs/performance.md)
 - [Roadmap](ROADMAP.md)
 - [Changelog](CHANGELOG.md)
