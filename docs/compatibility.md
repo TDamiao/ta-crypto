@@ -9,7 +9,7 @@
 
 ## Policy Source of Truth
 
-Tolerances, burn-in periods, alignment rules, and blocking reference definitions are formally declared in [`scripts/compat-policy.json`](../scripts/compat-policy.json) and enforced via automated test assertions.
+Tolerances, burn-in periods, alignment rules, comparison modes, and blocking reference definitions are formally declared in [`scripts/compat-policy.json`](../scripts/compat-policy.json) and enforced via automated test assertions.
 
 Reference series are left-padded with `null` to match the input length. Comparisons begin at the configured `burnIn` index and evaluate only overlapping non-null data points.
 
@@ -17,27 +17,44 @@ Reference series are left-padded with `null` to match the input length. Comparis
 
 ## External Parity Matrix
 
-| Indicator | Formula / Standard Reference | Burn-in | Tolerance | Blocking References | Non-Blocking Reference |
-| --- | --- | ---: | ---: | --- | --- |
-| **SMA(14)** | Simple Moving Average: $\frac{1}{N}\sum p_i$ | 14 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
-| **EMA(14)** | Exponential Moving Average seeded by SMA of first $N$ prices; $\alpha = \frac{2}{N+1}$ | 14 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
-| **RSI(14)** | Wilder's Relative Strength Index using RMA smoothing of gains/losses | 28 | `5e-2` | TA-Lib, `technicalindicators` | pandas-ta |
-| **MACD(12,26,9)** | Appel (1979): Fast EMA(12) - Slow EMA(26); Signal = EMA(MACD, 9); Hist = MACD - Signal | 80 | `2e-2` | TA-Lib, `technicalindicators` | pandas-ta |
-| **BBANDS(20,2)** | Bollinger Bands: Basis = SMA(20); Bands = Basis $\pm 2\sigma$ (population standard deviation) | 20 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
-| **ATR(14)** | Wilder's Average True Range using RMA smoothing over True Range | 56 | `1.5e-1` | TA-Lib, `technicalindicators` | pandas-ta |
-| **NATR(14)** | Normalized ATR: $\frac{\text{ATR}(14)}{\text{close}} \times 100$ | 56 | `1.5e-1` | TA-Lib | pandas-ta |
-| **ADX(14)** | Wilder's Average Directional Movement Index (+DI, -DI, DX smoothed via RMA) | 90 | `1.5` | TA-Lib, `technicalindicators` | pandas-ta |
-| **OBV** | Granville (1963): On-Balance Volume running sum of directional candle volume | 1 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
-| **MFI(14)** | Quong & May (1989): Money Flow Index based on typical price money flow ratio | 28 | `1.5e-1` | TA-Lib, `technicalindicators` | pandas-ta |
-| **STOCH(14,3)** | Lane (1950s): Stochastic Oscillator $\%K = \frac{C - LL}{HH - LL}\times 100$, $\%D = \text{SMA}(\%K, 3)$ | 20 | `1e-10` | TA-Lib, `technicalindicators` | pandas-ta |
+| Indicator | Formula / Standard Reference | Burn-in | Tolerance | Mode | Blocking References | Non-Blocking Reference |
+| --- | --- | ---: | ---: | --- | --- | --- |
+| **SMA(14)** | Simple Moving Average: $\frac{1}{N}\sum p_i$ | 14 | `1e-10` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **EMA(14)** | Exponential Moving Average seeded by SMA of first $N$ prices; $\alpha = \frac{2}{N+1}$ | 14 | `1e-10` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **RSI(14)** | Wilder's Relative Strength Index using RMA smoothing of gains/losses | 28 | `5e-2` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **MACD(12,26,9)** | Appel (1979): Fast EMA(12) - Slow EMA(26); Signal = EMA(MACD, 9); Hist = MACD - Signal | 80 | `2e-2` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **BBANDS(20,2)** | Bollinger Bands: Basis = SMA(20); Bands = Basis $\pm 2\sigma$ (population standard deviation) | 20 | `1e-10` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **ATR(14)** | Wilder's Average True Range using RMA smoothing over True Range | 56 | `1.5e-1` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **NATR(14)** | Normalized ATR: $\frac{\text{ATR}(14)}{\text{close}} \times 100$ | 56 | `1.5e-1` | Absolute | TA-Lib | pandas-ta |
+| **ADX(14)** | Wilder's Average Directional Movement Index (+DI, -DI, DX smoothed via RMA) | 90 | `1.5` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **OBV** | Granville (1963): On-Balance Volume running sum of directional candle volume | 1 | `1e-10` | Rebase (Trajectory) | TA-Lib, `technicalindicators` | pandas-ta |
+| **MFI(14)** | Quong & May (1989): Money Flow Index based on typical price money flow ratio | 28 | `1.5e-1` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
+| **STOCH(14,3)** | Lane (1950s): Stochastic Oscillator $\%K = \frac{C - LL}{HH - LL}\times 100$, $\%D = \text{SMA}(\%K, 3)$ | 20 | `1e-10` | Absolute | TA-Lib, `technicalindicators` | pandas-ta |
 
 *Note: TA-Lib and `technicalindicators` are blocking CI gates. `pandas-ta` serves as non-blocking telemetry.*
 
 ---
 
+## On-Balance Volume (OBV) Initialization & Trajectory Parity
+
+### Mathematical Definitions & Seed Differences
+- **`ta-crypto`**: Initializes cumulative OBV at origin $0$ ($\text{OBV}_0 = 0$). For subsequent bars $t \ge 1$:
+  $$\text{OBV}_t = \text{OBV}_{t-1} + \text{sign}(C_t - C_{t-1}) \cdot V_t$$
+- **`TA-Lib` & `pandas-ta`**: Initializes the accumulator with the volume of the first bar ($\text{OBV}_0 = V_0$).
+- **`technicalindicators`**: Produces an array beginning at bar 1, reflecting 0-origin relative accumulation.
+
+### Rationale for Rebased Trajectory Comparison
+In financial technical analysis, OBV is an open-ended accumulator where the absolute numeric level is an artifact of the arbitrary starting date of the data feed. All financial indicators and trading signals (divergences, trend breakouts, slope) depend exclusively on incremental trajectory changes ($\Delta \text{OBV}_t = \text{OBV}_t - \text{OBV}_{t-1}$).
+
+Consequently, external validation rebases both series at the first comparable index ($t = \text{burnIn}$):
+$$\text{OBV}'_t = \text{OBV}_t - \text{OBV}_{\text{burnIn}}$$
+This verifies $100\%$ exact point-by-point incremental parity within `1e-10` while accounting for the constant initialization seed offset ($V_0$). A dedicated test in `test/compat-drift.test.mjs` verifies that genuine trajectory divergences (e.g. wrong directional signs or incorrect volume amounts) trigger immediate assertion failures.
+
+---
+
 ## Deterministic Market-Shape Fixtures
 
-External compatibility tests execute against four distinct deterministic market scenarios generated in `scripts/export-compat-vectors.js`:
+External compatibility tests execute against four distinct deterministic market scenarios generated in `scripts/compat-payload.js`:
 
 1. **Cycle (`cycle`)**: Sinusoidal oscillating cyclical waves across 320 bars.
 2. **Trend (`trend`)**: Exponential bullish expansion with pullbacks and volume acceleration.

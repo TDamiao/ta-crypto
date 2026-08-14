@@ -12,9 +12,19 @@ import {
   MFI,
   Stochastic
 } from "technicalindicators";
+import { buildCompatPayload } from "./compat-payload.js";
 
-const compat = JSON.parse(readFileSync(resolve(process.cwd(), "test/fixtures/compat-current.json"), "utf8"));
-const policy = JSON.parse(readFileSync(resolve(process.cwd(), "scripts/compat-policy.json"), "utf8"));
+const policyPath = resolve(process.cwd(), "scripts/compat-policy.json");
+const policy = JSON.parse(readFileSync(policyPath, "utf8"));
+const compatPath = resolve(process.cwd(), "test/fixtures/compat-current.json");
+
+let compat;
+try {
+  compat = JSON.parse(readFileSync(compatPath, "utf8"));
+} catch {
+  // If fixture not yet generated, build in memory
+  compat = buildCompatPayload(policy);
+}
 
 const toleranceByIndicator = Object.fromEntries(
   Object.entries(policy.indicators).map(([key, value]) => [key, value.tolerance])
@@ -22,6 +32,10 @@ const toleranceByIndicator = Object.fromEntries(
 
 const burnInByIndicator = Object.fromEntries(
   Object.entries(policy.indicators).map(([key, value]) => [key, value.burnIn])
+);
+
+const comparisonByIndicator = Object.fromEntries(
+  Object.entries(policy.indicators).map(([key, value]) => [key, value.comparison || "absolute"])
 );
 
 let failures = 0;
@@ -32,44 +46,58 @@ function padFront(values, totalLength) {
   return Array.from({ length: totalLength - values.length }, () => null).concat(values);
 }
 
-function compareSeries(scenarioName, indicatorName, oursSeries, theirsSeries, tol, burnIn) {
+function compareSeries(scenarioName, indicatorName, oursSeries, theirsSeries, tol, burnIn, mode = "absolute") {
   let count = 0;
   let maxDiff = 0;
-  let firstFailIndex = -1;
-  let actualAtFail = null;
-  let refAtFail = null;
+  let worstIndex = -1;
+  let actualAtWorst = null;
+  let refAtWorst = null;
+
+  // For rebase mode (e.g. OBV with different origin/seed constants), rebase from burnIn point
+  let oursOffset = 0;
+  let theirsOffset = 0;
+  if (mode === "rebase" && oursSeries[burnIn] !== null && theirsSeries[burnIn] !== null && theirsSeries[burnIn] !== undefined) {
+    oursOffset = oursSeries[burnIn];
+    theirsOffset = theirsSeries[burnIn];
+  }
 
   for (let i = burnIn; i < oursSeries.length; i++) {
-    const a = oursSeries[i];
-    const b = theirsSeries[i];
-    if (a === null || b === null || b === undefined) continue;
+    const rawA = oursSeries[i];
+    const rawB = theirsSeries[i];
+    if (rawA === null || rawB === null || rawB === undefined) continue;
+
+    const a = mode === "rebase" ? rawA - oursOffset : rawA;
+    const b = mode === "rebase" ? rawB - theirsOffset : rawB;
+
     const diff = Math.abs(a - b);
-    if (diff > maxDiff) maxDiff = diff;
-    if (diff > tol && firstFailIndex === -1) {
-      firstFailIndex = i;
-      actualAtFail = a;
-      refAtFail = b;
+    if (diff > maxDiff) {
+      maxDiff = diff;
+      worstIndex = i;
+      actualAtWorst = a;
+      refAtWorst = b;
     }
     count += 1;
   }
 
   if (count === 0) {
     failures += 1;
-    console.error(`[compat][technicalindicators][${scenarioName}] ${indicatorName}: FAIL (no overlapping points after burn-in=${burnIn})`);
+    console.error(`\n[compat][technicalindicators] [${scenarioName}] ${indicatorName} FAIL (no overlapping points after burn-in=${burnIn})`);
     return;
   }
 
   if (maxDiff > tol) {
     failures += 1;
-    console.error(
-      `[compat][technicalindicators][${scenarioName}] ${indicatorName}: FAIL ` +
-      `(maxDiff=${maxDiff}, tol=${tol}, points=${count}, firstFailIndex=${firstFailIndex}, ` +
-      `actual=${actualAtFail}, ref=${refAtFail})`
-    );
+    console.error(`\n[compat][technicalindicators] [${scenarioName}] ${indicatorName} FAIL`);
+    console.error(`  index=${worstIndex}`);
+    console.error(`  actual=${actualAtWorst}`);
+    console.error(`  reference=${refAtWorst}`);
+    console.error(`  diff=${maxDiff}`);
+    console.error(`  tolerance=${tol}`);
+    console.error(`  points=${count}`);
     return;
   }
 
-  console.log(`[compat][technicalindicators][${scenarioName}] ${indicatorName}: OK (maxDiff=${maxDiff}, points=${count})`);
+  console.log(`[compat][technicalindicators] [${scenarioName}] ${indicatorName}: OK (maxDiff=${maxDiff}, points=${count})`);
 }
 
 const scenarioKeys = compat.meta?.scenarios || ["cycle"];
@@ -155,7 +183,8 @@ for (const scenarioKey of scenarioKeys) {
     ours.obv,
     padFront(obvRaw, len),
     toleranceByIndicator.obv,
-    burnInByIndicator.obv
+    burnInByIndicator.obv,
+    comparisonByIndicator.obv
   );
 
   // 9. MFI(14)

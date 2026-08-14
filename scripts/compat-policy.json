@@ -4,7 +4,7 @@
     "sma": {
       "tolerance": 1e-10,
       "burnIn": 14,
-      "formula": "Simple Moving Average over rolling window: sum(prices) / period",
+      "formula": "Simple Moving Average over rolling window: (1/N) * sum(prices)",
       "reference": "TA-Lib SMA / technicalindicators SMA"
     },
     "ema": {
@@ -16,26 +16,26 @@
     "rsi": {
       "tolerance": 5e-2,
       "burnIn": 28,
-      "formula": "Relative Strength Index using Wilder RMA of gains and losses",
-      "reference": "Wilder (1978) / TA-Lib RSI / technicalindicators RSI"
+      "formula": "Relative Strength Index using Wilder's RMA of gains and losses",
+      "reference": "Wilder, J. W. (1978). New Concepts in Technical Trading Systems / TA-Lib RSI / technicalindicators RSI"
     },
     "macd": {
       "tolerance": 2e-2,
       "burnIn": 80,
       "formula": "MACD line = EMA(fast) - EMA(slow); Signal = EMA(MACD, signalPeriod); Histogram = MACD - Signal",
-      "reference": "Appel (1979) / TA-Lib MACD / technicalindicators MACD"
+      "reference": "Appel, G. (1979) / TA-Lib MACD / technicalindicators MACD"
     },
     "bbands": {
       "tolerance": 1e-10,
       "burnIn": 20,
       "formula": "Basis = SMA(period); Upper/Lower = Basis +/- stdDevMultiplier * PopulationStdDev",
-      "reference": "Bollinger (2001) / TA-Lib BBANDS / technicalindicators BollingerBands"
+      "reference": "Bollinger, J. (2001). Bollinger on Bollinger Bands / TA-Lib BBANDS / technicalindicators BollingerBands"
     },
     "atr": {
       "tolerance": 1.5e-1,
       "burnIn": 56,
-      "formula": "Average True Range using Wilder RMA of True Range, seeded by SMA of first period true ranges",
-      "reference": "Wilder (1978) / TA-Lib ATR / technicalindicators ATR"
+      "formula": "Average True Range using Wilder's RMA of True Range, seeded by SMA of first period true ranges",
+      "reference": "Wilder, J. W. (1978) / TA-Lib ATR / technicalindicators ATR"
     },
     "natr": {
       "tolerance": 1.5e-1,
@@ -47,25 +47,26 @@
       "tolerance": 1.5,
       "burnIn": 90,
       "formula": "Average Directional Movement Index using Wilder smoothing of +DI/-DI and DX",
-      "reference": "Wilder (1978) / TA-Lib ADX / technicalindicators ADX"
+      "reference": "Wilder, J. W. (1978) / TA-Lib ADX / technicalindicators ADX"
     },
     "obv": {
       "tolerance": 1e-10,
       "burnIn": 1,
-      "formula": "On-Balance Volume running sum of directional candle volume",
-      "reference": "Granville (1963) / TA-Lib OBV / technicalindicators OBV"
+      "comparison": "rebase",
+      "formula": "On-Balance Volume: Granville (1963). Cumulative sum of directional volume signed by sign(close_t - close_{t-1}). Initialized at 0 in ta-crypto vs volume[0] in TA-Lib; compared by rebased trajectory / delta parity.",
+      "reference": "Granville, J. (1963). Granville's New Key to Stock Market Profits / TA-Lib OBV (origin=volume[0]) / technicalindicators OBV (origin=0)"
     },
     "mfi": {
       "tolerance": 1.5e-1,
       "burnIn": 28,
       "formula": "Money Flow Index = 100 - 100 / (1 + positiveMoneyFlow / negativeMoneyFlow)",
-      "reference": "Quong & May (1989) / TA-Lib MFI / technicalindicators MFI"
+      "reference": "Quong, G., & May, A. (1989). Money Flow Index / TA-Lib MFI / technicalindicators MFI"
     },
     "stoch": {
       "tolerance": 1e-10,
       "burnIn": 20,
       "formula": "Stochastic Oscillator: %K = (close - LL) / (HH - LL) * 100, %D = SMA(%K, dLength)",
-      "reference": "Lane (1950s) / TA-Lib STOCH / technicalindicators Stochastic"
+      "reference": "Lane, G. (1950s) / TA-Lib STOCH / technicalindicators Stochastic"
     }
   },
   "goldenOnlyIndicators": [
