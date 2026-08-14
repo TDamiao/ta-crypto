@@ -39,6 +39,7 @@ Indicator results are aligned with the input. Values that need more history are 
 | Calculate classic indicators in batch | `sma`, `rsi`, `macd`, `atr`, `adx`, and others | [Indicators](docs/indicators.md) |
 | Calculate funding, session VWAP, volatility regimes, or candle-derived orderflow | `ta-crypto/crypto` | [Crypto utilities](docs/crypto.md) |
 | Process prices or candles one at a time | `createSMA`, `createEMA`, `createRSI`, `createMACD`, `createATR`, `createBBANDS`, `createVWAPSession`, `createRealizedVolatility`, `createVolatilityRegime`, `createVolumeDelta`, `createOrderflowImbalance` | [Stateful API](docs/stateful.md) |
+| Review benchmarks, scaling guards, and regression policy | deterministic harness and baseline | [Performance & benchmarks](docs/performance.md) |
 | Review tolerances and external references | compatibility scripts and policy | [Compatibility](docs/compatibility.md) |
 | Verify releases and project limitations | CI, tags, changelog, and trust policy | [Trust and verification](docs/trust.md) |
 
@@ -122,6 +123,7 @@ GitHub Actions and Release Please are the single release authority. Conventional
 ## Project references
 
 - [Contributing](CONTRIBUTING.md)
+- [Performance policy](docs/performance.md)
 - [Roadmap](ROADMAP.md)
 - [Changelog](CHANGELOG.md)
 - [Trust and verification](docs/trust.md)

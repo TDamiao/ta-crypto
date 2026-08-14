@@ -45,6 +45,8 @@ npm run test:compat:technicalindicators
 npm run test:compat:python
 npm run bench
 npm run bench:rolling
+npm run bench:stateful
+npm run bench:regression
 ```
 
 ## Release process
@@ -78,11 +80,12 @@ See [Trust and verification](docs/trust.md) for traceability and failure recover
 2. Export via `src/index.ts` and module barrels if applicable.
 3. Add parity tests and golden vectors.
 
-### Benchmarks
+### Benchmarks & performance
 
-1. Extend `scripts/bench.js` with realistic input sizes.
-2. Include before/after numbers and methodology in the PR description.
-3. For rolling-window changes, preserve the warmup and alignment invariants in `docs/rolling-engine.md`.
+1. All benchmark datasets must use deterministic seeded PRNG from `scripts/bench/dataset.js`. `Math.random()` is prohibited.
+2. Changes to rolling algorithms or streaming indicators must satisfy the parity gate in `scripts/bench/parity.js` and scaling guard ($10\text{k} \to 100\text{k} \le 35\times$).
+3. Run `npm run bench:regression` to verify performance against `bench/baseline.json`.
+4. Consult [Performance & benchmarks](docs/performance.md) for statistical rules, warmup policies, and baseline update guidelines.
 
 ### Examples
 
