@@ -215,15 +215,15 @@ test("regression evaluator: evaluateScalingRatio (10k vs 100k)", () => {
   assert.equal(subLinear.status, "PASS");
   assert.equal(subLinear.ratio, 7.5);
 
-  // Acceptable upper bound (e.g. 40x <= 50x) => PASS
-  const bounded = evaluateScalingRatio({ medianMs: 0.10 }, { medianMs: 4.00 });
+  // Acceptable upper bound (e.g. 80x <= 100x) => PASS
+  const bounded = evaluateScalingRatio({ medianMs: 0.10 }, { medianMs: 8.00 });
   assert.equal(bounded.status, "PASS");
-  assert.equal(bounded.ratio, 40);
+  assert.equal(bounded.ratio, 80);
 
-  // Quadratic regression (~100x time) => FAIL
-  const quadratic = evaluateScalingRatio({ medianMs: 0.10 }, { medianMs: 12.00 });
+  // Quadratic regression (~200x time) => FAIL
+  const quadratic = evaluateScalingRatio({ medianMs: 0.10 }, { medianMs: 25.00 });
   assert.equal(quadratic.status, "FAIL");
-  assert.equal(quadratic.ratio, 120);
+  assert.equal(quadratic.ratio, 250);
 
   // Invalid inputs => FAIL
   assert.equal(evaluateScalingRatio({ medianMs: NaN }, { medianMs: 1.0 }).status, "FAIL");

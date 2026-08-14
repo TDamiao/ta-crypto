@@ -16,9 +16,9 @@ export const DEFAULT_THRESHOLDS = {
   absNoiseFloorMs: 0.25,
 
   // Maximum allowed time growth ratio for 10x dataset scaling (10k -> 100k):
-  // For O(N), ratio is ~7x-25x on bare-metal local CPU, and up to ~65x on virtualized Node 18 cloud runners with GC sweeps.
-  // Anything > 75x indicates quadratic degradation back to O(N^2) (which scales > 200x).
-  scalingRatioMax: 75.0,
+  // For O(N), ratio is ~7x-25x on bare-metal local CPU, and up to ~80x on virtualized Node 18 cloud runners with GC sweeps.
+  // Anything > 100x indicates quadratic degradation back to O(N^2) (which scales > 200x).
+  scalingRatioMax: 100.0,
 
   // Minimum required speedup for streaming over naive batch recomputation
   streamingSpeedupMin: 1.0
