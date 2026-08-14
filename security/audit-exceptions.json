@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ta-crypto Security Audit Exceptions",
+  "description": "Approved temporary high-severity dependency audit exceptions with explicit ownership and max 30-day expiration.",
+  "exceptions": []
+}

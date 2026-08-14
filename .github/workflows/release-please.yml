@@ -63,6 +63,9 @@ jobs:
       - name: Verify immutable action pinning
         run: npm run check:actions
 
+      - name: Audit dependency security
+        run: npm run security:audit
+
       - name: Build and execute test suites
         run: |
           npm run build

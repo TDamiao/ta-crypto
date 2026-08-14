@@ -12,3 +12,4 @@ pnpm-debug.log*
 test/fixtures/compat-current.json
 *.tgz
 *.sbom.*.json
+security-audit-report.json
