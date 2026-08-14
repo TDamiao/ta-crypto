@@ -10,3 +10,5 @@ pnpm-debug.log*
 .vscode/
 *.tsbuildinfo
 test/fixtures/compat-current.json
+*.tgz
+*.sbom.*.json
