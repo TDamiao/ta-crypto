@@ -1,86 +1,126 @@
-# Crypto utilities
+# Crypto-Market Utilities API Reference
 
-The `ta-crypto/crypto` entry point exports session VWAP, funding calculations, volatility regimes, and candle-derived orderflow proxies.
+The `ta-crypto/crypto` entry point exports specialized quantitative utilities designed for cryptocurrency markets, including session-anchored VWAP, perpetual funding rate metrics, statistical volatility regimes, and candle-derived orderflow pressure proxies.
 
-## Session VWAP
+---
 
-`vwapSession` resets cumulative price-volume and volume when the session identifier changes.
+## 1. Session VWAP (`vwapSession`)
 
+Calculates Volume-Weighted Average Price anchored to explicit market sessions or funding intervals.
+
+### Formula
+$$\text{Typical Price}_t = \frac{H_t + L_t + C_t}{3}, \quad \text{SessionVWAP}_t = \frac{\sum_{i=s}^t \text{Typical}_i \cdot V_i}{\sum_{i=s}^t V_i}$$
+where $s$ is the index of the first candle in the current session. The cumulative accumulators reset whenever the session identifier changes.
+
+### Signature & Overloads
 ```ts
-import { vwapSession } from "ta-crypto/crypto";
+// 1. Separate array inputs with session IDs array or session mapping function
+vwapSession(high, low, close, volume, sessionIds);
+vwapSession(high, low, close, volume, timestamps, (time) => getSessionId(time));
 
-const result = vwapSession(
-  [102, 103, 104],
-  [99, 100, 101],
-  [101, 102, 103],
-  [10, 12, 8],
-  ["asia", "asia", "us"]
-);
+// 2. Candle array or OHLCV object input
+vwapSession(candles, "utc-day");
+vwapSession(candles, (time, index) => getFundingSession(time));
 ```
 
-The output is aligned with the input. A point is `null` when cumulative volume for the current session is zero.
+### Invariants & Edge Cases
+- **Strict Inequality Reset**: Accumulators reset if and only if `sessionId[t] !== sessionId[t-1]`.
+- **Zero Volume Handling**: Returns `null` if cumulative volume for the current session is zero ($V = 0$).
+- **Streaming Parity**: Streaming equivalent `createVWAPSession()` produces identical outputs within `1e-10`.
 
-Session IDs are compared with strict inequality. Choose IDs that change exactly at the desired UTC, funding, or exchange-session boundary.
+---
 
-## Funding calculations
+## 2. Perpetual Funding Rate Metrics
 
+Perpetual futures contracts exchange periodic funding payments between long and short positions to tether mark prices to index spot prices.
+
+### `fundingRateCumulative(fundingRates)`
+- **Intent**: Running arithmetic sum of historical funding rates over time.
+- **Formula**: $\text{CumFunding}_t = \sum_{i=0}^t \text{rate}_i$
+- **Signature**: `fundingRateCumulative(fundingRates: number[]): Array<number | null>`
+- **Warmup**: Valid starting at index `0`.
+
+### `fundingRateAPR(values, periodsPerYear = 1095)`
+- **Intent**: Annualizes periodic funding rates into an Annual Percentage Rate (APR percentage).
+- **Formula**: $\text{APR}_t = \text{values}_t \times \text{periodsPerYear} \times 100\%$
+- **Signature**: `fundingRateAPR(values: number[], periodsPerYear?: number): Array<number | null>`
+- **Parameters**:
+  - `values`: Array of periodic funding rates (e.g. `[0.0001, -0.00005]`).
+  - `periodsPerYear`: Annualization factor representing total funding periods per year (default: `1095` for standard 8-hour funding: $365 \times 3$; use `8760` for 1-hour funding).
+- **Scope Notice**: This function calculates annualized percentage rate without compounding or fee/leverage modeling.
+
+---
+
+## 3. Volatility Regime Classification (`volatilityRegime`)
+
+Classifies market state into discrete volatility regimes based on rolling z-scores of annualized realized volatility.
+
+### Formula
+1. Calculate annualized realized volatility $\text{vol}_t = \text{realizedVolatility}(P, \text{length}, \text{periodsPerYear})_t$.
+2. Calculate rolling mean $\mu_t$ and rolling population standard deviation $s_t$ of $\text{vol}$ over $\text{length}$ periods.
+3. Compute the z-score:
+   $$z_t = \frac{\text{vol}_t - \mu_t}{s_t}$$
+4. Classify regime:
+   $$\text{Regime}_t = \begin{cases} -1 & \text{if } z_t < \text{lowZ} \text{ (Low Volatility / Compression)} \\ 0 & \text{if } \text{lowZ} \le z_t \le \text{highZ} \text{ (Normal Volatility)} \\ +1 & \text{if } z_t > \text{highZ} \text{ (High Volatility / Expansion)} \end{cases}$$
+
+### Signature & Defaults
 ```ts
-import { fundingRateAPR, fundingRateCumulative } from "ta-crypto/crypto";
-
-const rates = [0.0001, -0.00005, 0.00008];
-const cumulative = fundingRateCumulative(rates);
-const annualizedPercent = fundingRateAPR(rates, 365 * 3);
+volatilityRegime(
+  input: PriceInput,
+  length = 30,
+  periodsPerYear = 365,
+  lowZ = -0.5,
+  highZ = 0.5
+): Array<number | null>
 ```
 
-- `fundingRateCumulative` is a running arithmetic sum beginning at index `0`.
-- `fundingRateAPR` calculates `rate * periodsPerYear * 100` at every index.
-- These functions do not compound funding payments or model collateral, leverage, fees, or position changes.
+### Domain & Invariants
+- **Positive Price Domain**: Requires strictly positive prices ($P_t > 0$).
+- **Zero Variance Protection**: When standard deviation is degenerate ($s_t \le 10^{-12}$), returns `0` (normal regime).
+- **Warmup**: Returns `null` during initialization ($t < 2 \cdot \text{length}$).
 
-For funding every eight hours, `periodsPerYear = 365 * 3` (`1095`). For hourly funding, use `8760`.
+---
 
-## Volatility regime
+## 4. Candle-Derived Orderflow Proxies
 
-```ts
-import { volatilityRegime } from "ta-crypto/crypto";
+These functions estimate buying and selling pressure from bar-level price direction and volume.
 
-const regime = volatilityRegime(close, 30, 365, -0.5, 0.5);
-```
+> [!IMPORTANT]
+> These indicators are **candle-derived proxies** from OHLCV data. They do not consume tick-by-tick trade executions or L2/L3 order-book depth feeds and must not be confused with direct market depth.
 
-The function returns:
+### `signedVolume(input, close?, volume?)`
+- **Intent**: Assigns directional sign to candle volume based on bar close versus open.
+- **Formula**:
+  $$\text{SignedVol}_t = \begin{cases} +V_t & \text{if } C_t > O_t \\ -V_t & \text{if } C_t < O_t \\ 0 & \text{if } C_t = O_t \end{cases}$$
+- **Signature**: `signedVolume(input, close?, volume?): number[]`
+- **Warmup**: Valid starting at index `0`.
 
-- `-1` below the low z-score threshold (`z < lowZ`);
-- `0` between thresholds (`lowZ <= z <= highZ`), on exact threshold boundaries (`z == lowZ` or `z == highZ`), or when window standard deviation is zero / numerically degenerate ($s \le 10^{-12}$);
-- `1` above the high z-score threshold (`z > highZ`);
-- `null` during warmup.
+### `volumeDelta(input, close?, volume?, length = 14)`
+- **Intent**: Rolling cumulative sum of signed candle volume over `length` periods.
+- **Formula**: $\text{VolumeDelta}_t = \sum_{i=0}^{\text{length}-1} \text{SignedVol}_{t-i}$
+- **Signature**: `volumeDelta(input, close?, volume?, length?: number): Array<number | null>`
+- **Complexity**: $O(1)$ circular-buffer rolling sum.
+- **Warmup**: First valid value at index $\text{length} - 1$.
 
-Because this path uses log returns, it enforces strictly positive prices (> 0) starting in v0.4 ([issue #28](https://github.com/TDamiao/ta-crypto/issues/28)). Non-positive or non-finite prices are rejected with index-aware errors before volatility calculations.
+### `orderflowImbalance(input, close?, volume?, length = 14)`
+- **Intent**: Ratio of rolling signed volume to rolling total volume (bounded in $[-1.0, +1.0]$).
+- **Formula**:
+  $$\text{OFI}_t = \frac{\sum_{i=0}^{\text{length}-1} \text{SignedVol}_{t-i}}{\sum_{i=0}^{\text{length}-1} V_{t-i}}$$
+- **Signature**: `orderflowImbalance(input, close?, volume?, length?: number): Array<number | null>`
+- **Complexity**: $O(1)$ dual rolling sum updates.
+- **Warmup**: Emits at index $\text{length} - 1$.
+- **Edge Cases**: Returns `null` if total window volume is zero ($\sum V = 0$).
 
-## Candle-derived orderflow proxies
+---
 
-```ts
-import { orderflowImbalance, signedVolume, volumeDelta } from "ta-crypto/crypto";
+## 5. Summary of Crypto Module Exports
 
-const signed = signedVolume(open, close, volume);
-const delta14 = volumeDelta(open, close, volume, 14);
-const imbalance14 = orderflowImbalance(open, close, volume, 14);
-```
-
-`signedVolume` assigns the candle volume by candle direction:
-
-- positive when `close > open`;
-- negative when `close < open`;
-- zero when `close === open`.
-
-`volumeDelta` is the rolling sum of signed volume. `orderflowImbalance` divides rolling signed volume by rolling total volume and returns `null` when total volume is zero. Both first emit at index `period - 1`.
-
-These functions infer pressure from OHLCV candles. They do not consume trades, bid/ask classifications, or L2/L3 order-book events, and must not be presented as direct order-book imbalance.
-
-## Stateful session VWAP
-
-`createVWAPSession` is exported from both `ta-crypto/crypto` and `ta-crypto/stateful`. See [Stateful API](stateful.md) for its input contract and reset behavior.
-
-## Related limitations
-
-- Missing candle volume defaults to zero during normalization. See [Inputs and candles](inputs.md).
-- The batch orderflow and volatility-regime functions currently rescan windows; performance work is tracked separately in the v0.4 backlog.
-- No candle resampling, exchange adapter, or multi-timeframe merge API is currently exported.
+| Function | Signature Summary | Primary Input | Output Range |
+|---|---|---|---|
+| `vwapSession` | `(high, low, close, volume, sessionIds)` | OHLCV + Session ID | Price level or `null` |
+| `fundingRateCumulative` | `(fundingRates)` | `number[]` | Running sum |
+| `fundingRateAPR` | `(values, periodsPerYear = 1095)` | `number[]` | Annualized percentage array |
+| `volatilityRegime` | `(prices, length=30, periods=365, lowZ=-0.5, highZ=0.5)` | Positive prices ($P_t > 0$) | `{-1, 0, 1, null}` |
+| `signedVolume` | `(open, close, volume)` | OCV | `[-V, +V]` |
+| `volumeDelta` | `(open, close, volume, length = 14)` | OCV + length | Rolling sum |
+| `orderflowImbalance` | `(open, close, volume, length = 14)` | OCV + length | `[-1.0, +1.0]` or `null` |

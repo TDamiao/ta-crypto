@@ -11,7 +11,7 @@ This skill guides the validation of `ta-crypto` indicator outputs against indepe
 
 ## 1. Ground Rules & Policy Source
 
-1. **Policy Source of Truth**: NEVER invent numerical tolerances or burn-in offsets from memory. Read [`scripts/compat-policy.json`](../../scripts/compat-policy.json) and [`references/compat-matrix-reference.md`](references/compat-matrix-reference.md).
+1. **Policy Source of Truth**: NEVER invent numerical tolerances or burn-in offsets from memory. Read [`scripts/compat-policy.json`](../../../scripts/compat-policy.json) and [`references/compat-matrix-reference.md`](references/compat-matrix-reference.md).
 2. **Blocking vs Non-Blocking References**:
    - `TA-Lib` (Python) and `technicalindicators` (Node.js) are **blocking checks**. CI fails if tolerances are exceeded.
    - `pandas-ta` is **non-blocking telemetry**. Environment differences or minor pandas-ta variances produce warnings, not CI failures.

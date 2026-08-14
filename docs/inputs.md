@@ -1,33 +1,34 @@
-# Inputs and candles
+# Inputs, Candle Normalization & Domain Contracts
 
-This page describes the input shapes supported by `ta-crypto@0.3.4`.
+This page defines the supported input formats, normalization utilities in `ta-crypto/candles`, and unified financial domain contracts enforced across `ta-crypto`.
 
-## Price series
+---
 
-Single-series indicators accept a `number[]` or an array of candles. When candles are supplied, the indicator reads `close` or its alias `c`.
+## 1. Supported Input Shapes
 
+`ta-crypto` indicators accept data in three primary structures:
+
+### A. Flat Numeric Arrays
+Single-series indicators accept `number[]`:
 ```ts
-import { rsi } from "ta-crypto";
+import { rsi, sma } from "ta-crypto";
 
-rsi([101, 102, 100, 103], 14);
-rsi([{ o: 100, h: 102, l: 99, c: 101, v: 10 }], 14);
+const closePrices = [100.5, 101.2, 99.8, 102.4];
+const rsi14 = rsi(closePrices, 14);
 ```
 
-## Candle objects
-
-Long keys and compact aliases are supported:
+### B. Array of Candle Objects
+All single-series and multi-series indicators accept arrays of candle objects. Both full property names and compact single-character aliases are supported:
 
 ```ts
-type CandleObject = {
+type Candle = {
   open: number;
   high: number;
   low: number;
   close: number;
   volume?: number;
   time?: number | string | Date;
-};
-
-type CandleAlias = {
+} | {
   o: number;
   h: number;
   l: number;
@@ -37,82 +38,89 @@ type CandleAlias = {
 };
 ```
 
-Use one key style consistently. The long field is read first when both forms are present.
+When passing candle arrays to single-series indicators (e.g., `sma(candles)`), the indicator automatically extracts `close` (or `c`).
 
-## OHLCV arrays
-
-Multi-series APIs accept separate arrays or an OHLCV object:
+### C. Columnar OHLCV Objects
+Multi-series indicators accept columnar dictionary objects containing parallel arrays:
 
 ```ts
-import { atr, vwap } from "ta-crypto";
+// Full format
+const ohlcv = {
+  open: [100, 101],
+  high: [105, 106],
+  low: [98, 99],
+  close: [103, 104],
+  volume: [1000, 1200]
+};
 
-const high = [102, 103];
-const low = [99, 100];
-const close = [101, 102];
-const volume = [10, 12];
-
-atr(high, low, close, 14);
-vwap({
+// Compact alias format
+const compact = {
   o: [100, 101],
-  h: high,
-  l: low,
-  c: close,
-  v: volume
-});
+  h: [105, 106],
+  l: [98, 99],
+  c: [103, 104],
+  v: [1000, 1200]
+};
 ```
 
-All arrays in a multi-series input must have equal lengths.
+---
 
-## Normalize candles
+## 2. Candle Normalization Utilities (`ta-crypto/candles`)
 
-Use `toOHLCV` to create canonical arrays and `pluck*` when only one field is needed.
+The `ta-crypto/candles` subpath exports lightweight, zero-dependency helpers to extract and normalize candle arrays:
 
+### `toOHLCV(input, volumeFallback = 0)`
+Normalizes any candle array or columnar OHLCV object into a canonical `{ open, high, low, close, volume, time }` record of arrays.
 ```ts
-import { pluckClose, toOHLCV } from "ta-crypto/candles";
+import { toOHLCV } from "ta-crypto/candles";
 
-const candles = [
-  { open: 100, high: 102, low: 99, close: 101, volume: 10, time: 1 },
-  { open: 101, high: 103, low: 100, close: 102, time: 2 }
-];
-
-const close = pluckClose(candles);
-const ohlcv = toOHLCV(candles, 0);
+const normalized = toOHLCV(candles, 0);
+// Result:
+// {
+//   open: number[],
+//   high: number[],
+//   low: number[],
+//   close: number[],
+//   volume: number[],
+//   time: Array<number | string | Date | undefined>
+// }
 ```
 
-The normalized result has this shape:
+### Individual Pluck Functions
+- `pluckOpen(candles: Candle[]): number[]`
+- `pluckHigh(candles: Candle[]): number[]`
+- `pluckLow(candles: Candle[]): number[]`
+- `pluckClose(candles: Candle[]): number[]`
+- `pluckVolume(candles: Candle[], fallback = 0): number[]`
 
-```ts
-{
-  open: number[];
-  high: number[];
-  low: number[];
-  close: number[];
-  volume: number[];
-  time: Array<number | string | Date | undefined>;
-}
-```
+### Type Guards and Normalizers
+- `isCandleArray(input: PriceInput | OHLCVInput): input is Candle[]`
+- `normalizePrice(input: PriceInput, name = "values"): number[]` (extracts close series or validates numeric array)
 
-## Missing volume and validation
+---
 
-`volume` and `v` are optional in candle and OHLCV object inputs. `toOHLCV` and `pluckVolume` use the supplied fallback, which defaults to `0`. APIs that normalize candle objects therefore see missing volume as zero.
+## 3. Financial Domain Contracts & Validation Rules
 
-Starting in v0.4, all volume inputs and fallback parameters are strictly validated:
-- Volume must be a finite non-negative number (`volume >= 0`).
-- `volumeFallback` must be a finite non-negative number (`volumeFallback >= 0`).
-- Negative volume, `NaN`, `Infinity`, and `-Infinity` are rejected with descriptive, index-aware error messages.
+All functions across the library adhere to unified domain boundaries:
 
-## Validation in v0.3.4
+| Data Type / Dimension | Permitted Domain | Rejected Inputs & Errors |
+|---|---|---|
+| **Standard Prices** | Finite real numbers ($\mathbb{R}$) | `NaN`, `Infinity`, `-Infinity`, strings, undefined $\to$ throws error. |
+| **Strict Positive Prices** | Strictly positive ($P_t > 0$) for `logReturn`, `realizedVolatility`, `volatilityRegime`, `natr` | $P_t \le 0$, `NaN`, `Infinity` $\to$ throws index-aware error (e.g. `values[2] must be a positive number (> 0), got 0`). |
+| **Volume Series** | Finite non-negative ($V_t \ge 0$) | $V_t < 0$, `NaN`, `Infinity` $\to$ throws error (e.g. `candles[1].volume must be a non-negative number (>= 0), got -10`). |
+| **Volume Fallback** | Finite non-negative ($V \ge 0$) | Negative fallback $\to$ throws error. |
+| **Period Parameters** | Finite positive integers ($N \in \mathbb{Z}_{\ge 1}$) | $N \le 0$, non-integers (e.g. `14.5`), `NaN`, `Infinity` $\to$ throws error. |
+| **Standard Multipliers** | Finite non-negative numbers ($\ge 0$) | Negative numbers, `NaN`, `Infinity` $\to$ throws error. |
+| **Array Alignment** | All parallel series must have equal length | Length mismatch $\to$ throws length mismatch error. |
+| **Empty Series** | Empty array (`[]`) | Valid $\to$ returns empty array (`[]`) or empty series record. |
 
-- Candle normalization rejects missing or non-finite OHLC values with field and index context.
-- Normalized OHLCV arrays are checked for equal lengths.
-- Many public wrappers validate finite numeric arrays, but validation is not yet uniform across every overload.
-- Period handling is also not yet uniform; use positive integer periods.
-- Empty arrays generally return empty aligned outputs, but callers should verify the specific function contract.
+---
 
-Do not rely on invalid periods returning all-null output. The v0.4 validation work may tighten these cases into explicit errors.
+## 4. Missing Volume Policy
 
-## Related pages
+In cryptocurrency datasets, certain feeds omit volume fields for specific intervals.
 
-- [Indicators](indicators.md)
-- [Crypto utilities](crypto.md)
-- [Stateful API](stateful.md)
+1. In candle objects, if `volume` (or `v`) is `undefined`, `toOHLCV` and `pluckVolume` apply the `volumeFallback` (defaulting to `0`).
+2. Volume-dependent indicators (`vwap`, `vwapSession`, `orderflowImbalance`) evaluate volume points:
+   - If total volume across a calculation window or session is zero ($V = 0$), the indicator gracefully emits `null` rather than dividing by zero or producing `NaN`.
+3. If an explicit negative volume is supplied (e.g. `volume: -5`), validation fails immediately.

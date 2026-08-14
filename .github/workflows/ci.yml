@@ -25,6 +25,7 @@ jobs:
       - run: npm ci
       - run: npm run check:actions
       - run: npm run security:audit
+      - run: npm run docs:check
       - name: Upload Security Audit Report
         if: always()
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1

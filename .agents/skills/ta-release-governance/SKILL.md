@@ -13,7 +13,7 @@ This skill governs release decision-making, release cadence enforcement, version
 
 1. **A Merged Change Is NOT a Release**: Code merged into `main` accumulates until a coherent release candidate is formed.
 2. **Weekly Cadence Limit**: Normal releases occur at most **once per week** when meaningful releasable content exists.
-3. **Reference Release Policy**: All decisions MUST comply with [`docs/release-policy.md`](../../docs/release-policy.md).
+3. **Reference Release Policy**: All decisions MUST comply with [`docs/release-policy.md`](../../../docs/release-policy.md).
 4. **Automation Authority**: Release Please and GitHub Actions are the ONLY publication authority. This skill evaluates governance eligibility—it does NOT execute local publishes or tag creation.
 
 ---

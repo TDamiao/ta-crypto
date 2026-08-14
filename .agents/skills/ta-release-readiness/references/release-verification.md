@@ -6,7 +6,7 @@ This reference details the release verification rules and Release Please automat
 
 ## 1. Release Authority & Policy
 
-- **Single Release Authority**: [Release Please](.github/workflows/release-please.yml) and GitHub Actions are the **ONLY** release authority.
+- **Single Release Authority**: [Release Please](../../../../.github/workflows/release-please.yml) and GitHub Actions are the **ONLY** release authority.
 - **Strict Prohibition**: Codex and local developers must NEVER:
   - Manually bump versions in `package.json` or `.release-please-manifest.json`.
   - Create manual git tags (e.g. `v0.4.0`).

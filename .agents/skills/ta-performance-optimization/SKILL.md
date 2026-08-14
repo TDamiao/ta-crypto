@@ -33,7 +33,7 @@ Every optimization in `ta-crypto` MUST:
 | **Rolling Minimum** | `RollingMin` | Amortized $O(1)$ via Monotonic Queue | Stochastic oscillator, Donchian channels |
 | **Rolling Maximum** | `RollingMax` | Amortized $O(1)$ via Monotonic Queue | Stochastic oscillator, Donchian channels |
 
-Read [`docs/rolling-engine.md`](../../docs/rolling-engine.md) for detailed invariant requirements.
+Read [`docs/rolling-engine.md`](../../../docs/rolling-engine.md) for detailed invariant requirements.
 
 ---
 
