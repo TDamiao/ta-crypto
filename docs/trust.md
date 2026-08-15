@@ -1,11 +1,10 @@
 # Trust and verification
 
-This page describes the checks, release process, and limitations of `ta-crypto@0.3.4`.
+This page describes the checks, release process, and limitations of `ta-crypto`.
 
-## Current stable release
+## Current stable release line
 
-- Package version: `0.3.4`
-- Git tag: `v0.3.4`
+- Release line: `v0.4`
 - Changelog entry: [`CHANGELOG.md`](../CHANGELOG.md)
 
 When verifying an installation, confirm that the npm version, Git tag, release commit, and changelog entry agree.

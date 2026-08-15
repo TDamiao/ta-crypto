@@ -6,7 +6,7 @@
 [![CI](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml/badge.svg)](https://github.com/TDamiao/ta-crypto/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/ta-crypto.svg)](LICENSE)
 
-Technical analysis indicators and crypto-market utilities for Node.js. The current stable release is `v0.3.4`.
+Technical analysis indicators and crypto-market utilities for Node.js. The current stable release line is `v0.4`.
 
 ## Install
 

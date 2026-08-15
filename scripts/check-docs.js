@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateDocumentationVersion } from "./doc-invariants.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -141,20 +142,25 @@ function checkVersionConsistency() {
     logError(`Version mismatch between package.json (${publishedVersion}) and .release-please-manifest.json (${manifestVersion})`);
   }
 
-  // Check README mentions current published version or release line
+  // Check README mentions current published version or release line and has no stale declarations
   const readme = fs.readFileSync(path.resolve(ROOT_DIR, "README.md"), "utf8");
-  const majorMinor = publishedVersion.split(".").slice(0, 2).join(".");
-  if (!readme.includes(`v${publishedVersion}`) && !readme.includes(`v${majorMinor}`)) {
-    logError(`README.md does not mention version v${publishedVersion} or release line v${majorMinor}`);
+  const docResult = validateDocumentationVersion(readme, publishedVersion);
+  if (!docResult.valid) {
+    for (const err of docResult.errors) {
+      logError(err);
+    }
   }
 
   // Check SECURITY.md mentions published minor and target
+  const majorMinor = publishedVersion.split(".").slice(0, 2).join(".");
   const security = fs.readFileSync(path.resolve(ROOT_DIR, "SECURITY.md"), "utf8");
   if (!security.includes(`${majorMinor}.x`)) {
     logError(`SECURITY.md does not document supported status for ${majorMinor}.x`);
   }
 
-  logSuccess(`Version consistency verified (current published stable: ${publishedVersion}).`);
+  if (docResult.valid && publishedVersion === manifestVersion) {
+    logSuccess(`Version consistency verified (current published stable: ${publishedVersion}, line: v${majorMinor}).`);
+  }
 }
 
 /**

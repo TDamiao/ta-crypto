@@ -3,12 +3,13 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { execSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { validateDocumentationVersion } from "./doc-invariants.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
 
 /**
- * Validates the exact release artifact (tarball, SBOM, version alignment, and npm uniqueness).
+ * Validates the exact release artifact (tarball, payload documentation invariant, SBOM, version alignment, and npm uniqueness).
  * @param {object} options
  * @returns {{ valid: boolean, errors: string[], details: object }}
  */
@@ -39,7 +40,7 @@ export function validateReleaseArtifact(options = {}) {
     }
   }
 
-  // 2. Tarball existence and integrity
+  // 2. Tarball existence, integrity, and internal payload inspection
   const tarballPath = options.tarballPath
     ? path.resolve(process.cwd(), options.tarballPath)
     : path.resolve(ROOT_DIR, `${packageName}-${version}.tgz`);
@@ -53,6 +54,40 @@ export function validateReleaseArtifact(options = {}) {
     const sha512 = crypto.createHash("sha512").update(buf).digest("hex");
     details.tarballSha256 = sha256;
     details.tarballSha512 = sha512;
+
+    // 2.1 Tarball internal package.json verification
+    try {
+      const tarPkgContent = execSync(`tar -xOf "${tarballPath}" package/package.json`, {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"]
+      });
+      const tarPkg = JSON.parse(tarPkgContent);
+      if (tarPkg.name !== packageName || tarPkg.version !== version) {
+        errors.push(`Tarball internal package.json mismatch: expected ${packageName}@${version}, got ${tarPkg.name}@${tarPkg.version}.`);
+      } else {
+        details.tarballPkgValid = true;
+      }
+    } catch (err) {
+      errors.push(`Failed to inspect package/package.json inside release tarball: ${err.message}`);
+    }
+
+    // 2.2 Tarball internal README.md documentation version invariant verification
+    try {
+      const tarReadmeContent = execSync(`tar -xOf "${tarballPath}" package/README.md`, {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"]
+      });
+      const docResult = validateDocumentationVersion(tarReadmeContent, version);
+      if (!docResult.valid) {
+        for (const docErr of docResult.errors) {
+          errors.push(`Tarball package/README.md version invariant violation: ${docErr}`);
+        }
+      } else {
+        details.tarballDocsValid = true;
+      }
+    } catch (err) {
+      errors.push(`Failed to inspect package/README.md inside release tarball: ${err.message}`);
+    }
 
     // 3. SPDX SBOM check
     const spdxPath = options.spdxPath || path.resolve(ROOT_DIR, `${packageName}-${version}.sbom.spdx.json`);
@@ -147,6 +182,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     console.log(`✅ [validate-release-artifact] Release artifact and metadata validation passed for ${result.details.packageName}@${result.details.version}:`);
     console.log(`  - Tarball:    ${path.basename(result.details.tarball)}`);
     console.log(`  - SHA-256:    ${result.details.tarballSha256}`);
+    console.log(`  - Internal:   package.json & README.md documentation version invariant VALID`);
     console.log(`  - SPDX SBOM:  VALID`);
     console.log(`  - CDX SBOM:   VALID`);
     if (result.details.tagAligned) console.log(`  - Tag:        ${expectedTag} (ALIGNED)`);

@@ -4,7 +4,7 @@ Thanks for contributing.
 
 ## Current release line
 
-`v0.3.4` is the current stable release.
+`v0.4` is the current stable release line.
 The v0.4 contribution priority is core hardening:
 1. Financial semantics and numeric validation.
 2. Compatibility and reproducibility depth.
