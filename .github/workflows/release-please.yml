@@ -4,6 +4,11 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+    inputs:
+      publish_tag:
+        description: "Release tag to publish (e.g. v0.4.0)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -29,7 +34,7 @@ jobs:
 
   publish:
     needs: release
-    if: needs.release.outputs.release_created == 'true'
+    if: always() && (needs.release.outputs.release_created == 'true' || (inputs.publish_tag != '' && inputs.publish_tag != null))
     runs-on: ubuntu-latest
     environment: npm-publish
     permissions:
@@ -39,7 +44,7 @@ jobs:
       - name: Check out the released tag
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
         with:
-          ref: ${{ needs.release.outputs.tag_name }}
+          ref: ${{ inputs.publish_tag != '' && inputs.publish_tag || needs.release.outputs.tag_name }}
 
       - name: Setup Node.js for Trusted Publishing
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -80,15 +85,17 @@ jobs:
           node ./scripts/generate-sbom.js
 
       - name: Validate exact artifact, SBOMs, and tag alignment
-        run: node ./scripts/validate-release-artifact.js --tag=${{ needs.release.outputs.tag_name }} --check-npm
+        run: node ./scripts/validate-release-artifact.js --tag=${{ inputs.publish_tag != '' && inputs.publish_tag || needs.release.outputs.tag_name }} --check-npm
 
       - name: Upload release artifact and SBOM evidence
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
-          name: release-artifacts-${{ needs.release.outputs.tag_name }}
+          name: release-artifacts-${{ inputs.publish_tag != '' && inputs.publish_tag || needs.release.outputs.tag_name }}
           path: |
             ta-crypto-*.tgz
             ta-crypto-*.sbom.*.json
 
       - name: Publish to npm via OIDC Trusted Publishing
-        run: npm publish --access public --provenance
+        run: |
+          rm -f ~/.npmrc
+          npm publish --access public --provenance
