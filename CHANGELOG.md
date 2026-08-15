@@ -28,6 +28,38 @@
 * **core:** optimize `makeSeries` with fast array fill allocation.
 * **bench:** add legacy-vs-rolling parity gate in `scripts/bench-rolling.js`.
 
+## [0.4.0](https://github.com/TDamiao/ta-crypto/compare/v0.3.4...v0.4.0) (2026-08-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* **performance:** percentReturn(values, { cumulative: true }) and percentReturn(values, true) now compute compounded cumulative returns rather than arithmetic summation. Use sumPeriodicReturns(values) or percentReturn(values, { mode: 'sum' }) for arithmetic summation.
+
+### Features
+
+* **stateful:** add createMACD, createATR, createBBANDS, volatility, and orderflow ([#16](https://github.com/TDamiao/ta-crypto/issues/16), [#35](https://github.com/TDamiao/ta-crypto/issues/35), [#36](https://github.com/TDamiao/ta-crypto/issues/36)) ([276c13f](https://github.com/TDamiao/ta-crypto/commit/276c13f2eb1d93d32b793ce4f8c8129102445b60))
+
+
+### Bug Fixes
+
+* **compat:** decouple compat-drift from disk fixture and formalize OBV rebased trajectory ([#20](https://github.com/TDamiao/ta-crypto/issues/20)) ([0e1ba97](https://github.com/TDamiao/ta-crypto/commit/0e1ba979ede74bd1a2ce90308da0fb0bc28ace0b))
+* **core:** post-audit hardening for return domain, volume contracts, and rolling variance stability ([#27](https://github.com/TDamiao/ta-crypto/issues/27), [#30](https://github.com/TDamiao/ta-crypto/issues/30), [#33](https://github.com/TDamiao/ta-crypto/issues/33), [#34](https://github.com/TDamiao/ta-crypto/issues/34), [#37](https://github.com/TDamiao/ta-crypto/issues/37)) ([724a2e7](https://github.com/TDamiao/ta-crypto/commit/724a2e7adaced7b3ffca54047cce9670869719fd))
+* **core:** validate NATR positive close domain and standardize period validation ([#29](https://github.com/TDamiao/ta-crypto/issues/29), [#30](https://github.com/TDamiao/ta-crypto/issues/30)) ([c2b1184](https://github.com/TDamiao/ta-crypto/commit/c2b1184db8435a7742457faae82cf324c6dbbc74))
+* **deps:** update brace-expansion to 2.1.4 resolving GHSA-mh99-v99m-4gvg and GHSA-rgw5-rvv9-x895 ([#39](https://github.com/TDamiao/ta-crypto/issues/39)) ([dfc1960](https://github.com/TDamiao/ta-crypto/commit/dfc1960c0d9a9c41f5de3d46f82402eb56f47b31))
+* **docs:** allow major-minor release line match in version consistency checker ([#22](https://github.com/TDamiao/ta-crypto/issues/22)) ([c0255c7](https://github.com/TDamiao/ta-crypto/commit/c0255c7274ee4b5d331b8f220ccbb987ac531b43))
+* **performance:** correct cumulative percentReturn compounding semantics ([#27](https://github.com/TDamiao/ta-crypto/issues/27)) ([3c91d5f](https://github.com/TDamiao/ta-crypto/commit/3c91d5fc7b8ace39f5b14255334e159ca67a793b))
+* **performance:** reject non-positive prices in logReturn and volatility consumers ([#28](https://github.com/TDamiao/ta-crypto/issues/28)) ([bef2853](https://github.com/TDamiao/ta-crypto/commit/bef285357b24b71b3f7e85d042b7cfdca4e7cf40))
+* **security:** enforce high-only exception severity, persist CI audit report artifact, and configure pip dependabot ([#39](https://github.com/TDamiao/ta-crypto/issues/39)) ([619db4b](https://github.com/TDamiao/ta-crypto/commit/619db4b2dfc5f73f8a7fa683945508bcc3609104))
+* **validation:** enforce non-negative volume in candle helpers ([#30](https://github.com/TDamiao/ta-crypto/issues/30)) ([bfcdc88](https://github.com/TDamiao/ta-crypto/commit/bfcdc88c6e5f94c61ae25a578abb6457b140be2d))
+
+
+### Performance Improvements
+
+* **bench:** calibrate scaling ratio guard to 50x to accommodate cloud VM GC sweeps ([#4](https://github.com/TDamiao/ta-crypto/issues/4)) ([4ea718b](https://github.com/TDamiao/ta-crypto/commit/4ea718b861b5559b5682a4afb0a0008be6a66694))
+* **bench:** optimize 100k inner iterations and set 75x scaling ceiling ([#4](https://github.com/TDamiao/ta-crypto/issues/4)) ([8bda302](https://github.com/TDamiao/ta-crypto/commit/8bda302d28d693aa3970a9267d7c5aba46812bf5))
+* **bench:** set 100x scaling ratio ceiling to absorb Node 18 VM GC sweeps ([#40](https://github.com/TDamiao/ta-crypto/issues/40), [#41](https://github.com/TDamiao/ta-crypto/issues/41)) ([9afb60e](https://github.com/TDamiao/ta-crypto/commit/9afb60ec0b2f335574dc29d629beac23f790acb7))
+* **core:** optimize MFI, periodic VWAP, orderflow, and volatility regimes with rolling algorithms ([#31](https://github.com/TDamiao/ta-crypto/issues/31), [#32](https://github.com/TDamiao/ta-crypto/issues/32), [#33](https://github.com/TDamiao/ta-crypto/issues/33), [#34](https://github.com/TDamiao/ta-crypto/issues/34)) ([e66685e](https://github.com/TDamiao/ta-crypto/commit/e66685e920d998b40a3a9098974a304f53518a65))
+
 ## [0.3.4](https://github.com/TDamiao/ta-crypto/compare/v0.3.3...v0.3.4) (2026-07-21)
 
 
