@@ -28,6 +28,13 @@
 * **core:** optimize `makeSeries` with fast array fill allocation.
 * **bench:** add legacy-vs-rolling parity gate in `scripts/bench-rolling.js`.
 
+## [0.4.2](https://github.com/TDamiao/ta-crypto/compare/v0.4.1...v0.4.2) (2026-08-15)
+
+
+### Bug Fixes
+
+* **release:** persist validated artifacts on GitHub releases ([04d48a2](https://github.com/TDamiao/ta-crypto/commit/04d48a2c0b7fa9187310cd34bc3562df75dc8e29))
+
 ## [0.4.1](https://github.com/TDamiao/ta-crypto/compare/v0.4.0...v0.4.1) (2026-08-15)
 
 
