@@ -79,6 +79,12 @@ Local commands do not create release commits, tags, GitHub Releases, or npm publ
 
 `ta-crypto` enforces verifiable supply-chain security:
 
+- **Canonical Registry**: `npmjs.org` is the single authoritative package registry for `ta-crypto`. All public releases are distributed exclusively via npmjs.org.
+- **Evidence Retention Hierarchy**:
+  - *GitHub Actions Artifacts*: Temporary execution evidence generated per workflow run.
+  - *GitHub Release Assets*: Permanent, immutable release evidence attached directly to the GitHub Release (`ta-crypto-<version>.tgz`, `ta-crypto-<version>.sbom.spdx.json`, `ta-crypto-<version>.sbom.cdx.json`).
+  - *npm Registry*: Canonical distribution medium with cryptographic provenance attestations.
+- **GitHub Release Asset Invariant**: Every production GitHub Release must contain the exact validated npm tarball plus SPDX 2.3 and CycloneDX 1.5 SBOMs.
 - **npm Trusted Publishing (OIDC)**: npm authenticates publication requests directly against GitHub's OpenID Connect identity provider using short-lived tokens generated per workflow run (`id-token: write`) under the protected GitHub Environment `npm-publish` (`TDamiao/ta-crypto`, workflow: `.github/workflows/release-please.yml`, environment: `npm-publish`). No permanent npm tokens are used in the publication workflow.
 - **Trusted Publishing Runtime Invariant**: npm Trusted Publishing with cryptographic provenance generation strictly requires Node.js `>=22.14.0` and npm CLI `>=11.5.1`. The release workflow uses Node.js 24, pins npm CLI `>=11.5.1`, and validates runtime requirements via `scripts/check-publish-runtime.js` before executing build, test, and publish steps.
 - **Pristine Release Environment**: The publish workflow omits package manager caching (`cache: npm`) to prevent cache contamination and ensure publication occurs from an uncontaminated, deterministic build environment.
