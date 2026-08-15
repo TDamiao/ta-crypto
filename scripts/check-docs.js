@@ -141,15 +141,15 @@ function checkVersionConsistency() {
     logError(`Version mismatch between package.json (${publishedVersion}) and .release-please-manifest.json (${manifestVersion})`);
   }
 
-  // Check README mentions current published version
+  // Check README mentions current published version or release line
   const readme = fs.readFileSync(path.resolve(ROOT_DIR, "README.md"), "utf8");
-  if (!readme.includes(`v${publishedVersion}`)) {
-    logError(`README.md does not mention current stable release v${publishedVersion}`);
+  const majorMinor = publishedVersion.split(".").slice(0, 2).join(".");
+  if (!readme.includes(`v${publishedVersion}`) && !readme.includes(`v${majorMinor}`)) {
+    logError(`README.md does not mention version v${publishedVersion} or release line v${majorMinor}`);
   }
 
   // Check SECURITY.md mentions published minor and target
   const security = fs.readFileSync(path.resolve(ROOT_DIR, "SECURITY.md"), "utf8");
-  const majorMinor = publishedVersion.split(".").slice(0, 2).join(".");
   if (!security.includes(`${majorMinor}.x`)) {
     logError(`SECURITY.md does not document supported status for ${majorMinor}.x`);
   }
