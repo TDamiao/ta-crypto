@@ -33,18 +33,34 @@ See [Compatibility](compatibility.md) for the complete matrix and ATR/ADX initia
 
 ## Verify locally
 
+Core build, quality checks, test suite, and regression benchmarks:
+
 ```bash
 npm ci
+npm run check
+```
+
+Or individual stages:
+
+```bash
+npm run check:quality
 npm test
 npm run test:golden
+npm run bench:regression
 npm run test:compat:technicalindicators
 ```
 
-For Python references:
+For Python references and full matrix compatibility:
 
 ```bash
 python -m pip install -r scripts/requirements-compat.txt
-npm run test:compat:python
+npm run test:compat
+```
+
+Full release readiness verification gate (including packaging dry-run):
+
+```bash
+npm run release:check
 ```
 
 CI uses Linux and Python 3.12 for the full Python reference job. TA-Lib and pandas-ta availability may differ locally.

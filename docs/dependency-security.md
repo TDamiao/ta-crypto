@@ -64,7 +64,7 @@ If an upstream vulnerability cannot be fixed immediately without breaking change
 # Run security audit gate
 npm run security:audit
 
-# Run full pre-release validation (actions check, security audit, tests, compat, pack)
+# Run full pre-release validation (actions check, security audit, docs check, tests, compat, regression benchmark, pack)
 npm run release:check
 ```
 
