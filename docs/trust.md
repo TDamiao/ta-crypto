@@ -70,7 +70,7 @@ GitHub Actions and [Release Please](../.github/workflows/release-please.yml) are
 4. The workflow checks out that tag, installs locked dependencies, runs tests, compatibility checks, and builds the distribution.
 5. The workflow packs the exact `.tgz` artifact and generates canonical SPDX 2.3 and CycloneDX 1.5 SBOMs.
 6. The workflow validates tag alignment, package version, checksums, and tests against duplicate npm publication.
-7. The workflow uploads the tarball and SBOMs as immutable release artifacts.
+7. The workflow uploads the tarball and SBOMs as durable release evidence attached to the GitHub Release.
 8. The workflow publishes to npm via **npm Trusted Publishing** (OIDC identity federation) with cryptographic provenance attestations.
 
 Local commands do not create release commits, tags, GitHub Releases, or npm publications. `npm run release:check` is the supported local validation and dry-run entry point.
@@ -82,8 +82,8 @@ Local commands do not create release commits, tags, GitHub Releases, or npm publ
 - **Canonical Registry**: `npmjs.org` is the single authoritative package registry for `ta-crypto`. All public releases are distributed exclusively via npmjs.org.
 - **Evidence Retention Hierarchy**:
   - *GitHub Actions Artifacts*: Temporary execution evidence generated per workflow run.
-  - *GitHub Release Assets*: Permanent, immutable release evidence attached directly to the GitHub Release (`ta-crypto-<version>.tgz`, `ta-crypto-<version>.sbom.spdx.json`, `ta-crypto-<version>.sbom.cdx.json`).
-  - *npm Registry*: Canonical distribution medium with cryptographic provenance attestations.
+  - *GitHub Release Assets*: Durable, persistent release evidence attached directly to the GitHub Release (`ta-crypto-<version>.tgz`, `ta-crypto-<version>.sbom.spdx.json`, `ta-crypto-<version>.sbom.cdx.json`).
+  - *npm Registry*: Canonical distribution medium with cryptographically immutable provenance attestations.
 - **GitHub Release Asset Invariant**: Every production GitHub Release must contain the exact validated npm tarball plus SPDX 2.3 and CycloneDX 1.5 SBOMs.
 - **npm Trusted Publishing (OIDC)**: npm authenticates publication requests directly against GitHub's OpenID Connect identity provider using short-lived tokens generated per workflow run (`id-token: write`) under the protected GitHub Environment `npm-publish` (`TDamiao/ta-crypto`, workflow: `.github/workflows/release-please.yml`, environment: `npm-publish`). No permanent npm tokens are used in the publication workflow.
 - **Trusted Publishing Runtime Invariant**: npm Trusted Publishing with cryptographic provenance generation strictly requires Node.js `>=22.14.0` and npm CLI `>=11.5.1`. The release workflow uses Node.js 24, pins npm CLI `>=11.5.1`, and validates runtime requirements via `scripts/check-publish-runtime.js` before executing build, test, and publish steps.
