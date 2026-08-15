@@ -58,7 +58,7 @@ jobs:
         run: |
           node --version
           npm --version
-          node ./scripts/check-publish-runtime.js
+          npm run check:runtime
 
       - name: Setup Python for Compatibility Verification
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -73,27 +73,16 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r scripts/requirements-compat.txt
 
-      - name: Verify immutable action pinning
-        run: npm run check:actions
-
-      - name: Audit dependency security
-        run: npm run security:audit
-
-      - name: Build and execute test suites
-        run: |
-          npm run build
-          npm test
-          npm run test:compat:technicalindicators
-          npm run test:compat:python
-          npm run bench:regression
+      - name: Execute canonical release verification gate
+        run: npm run release:check
 
       - name: Pack exact release artifact and generate SBOMs
         run: |
           npm pack
-          node ./scripts/generate-sbom.js
+          npm run generate:sbom
 
       - name: Validate exact artifact, payload documentation invariant, SBOMs, and tag alignment
-        run: node ./scripts/validate-release-artifact.js --tag=${{ inputs.publish_tag != '' && inputs.publish_tag || needs.release.outputs.tag_name }} --check-npm
+        run: npm run validate:artifact -- --tag=${{ inputs.publish_tag != '' && inputs.publish_tag || needs.release.outputs.tag_name }} --check-npm
 
       - name: Upload release artifact and SBOM evidence
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1

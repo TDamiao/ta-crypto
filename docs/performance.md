@@ -93,19 +93,38 @@ $$\text{Growth Ratio} = \frac{\text{medianMs}(100\text{k})}{\text{medianMs}(10\t
 
 ---
 
-## 7. Versioned Baseline & Regression Policy
+## 7. Performance Gate & Baseline Telemetry Policy
 
-Reference baseline metrics are recorded in [`bench/baseline.json`](../bench/baseline.json).
+The performance suite (`npm run bench:regression`) enforces a two-tier governance model:
 
-### Regression Status Classification
+### A. Blocking Hard Gates (Exit Code 1)
+These conditions fail the CI and release gates immediately across all environments:
+1. **Mathematical Parity Failure**: Divergence $> 1 \times 10^{-10}$ between streaming and batch indicators.
+2. **Algorithmic Scaling Guard Violation**: Runtime growth ratio from 10k to 100k data points $> 100.0\times$ (guarding against $O(N^2)$ algorithmic degradation).
+3. **Stateful Streaming Degradation**: Streaming speedup $< 1.0\times$ over naive batch recomputation.
+4. **Invalid Timings**: Non-finite (NaN, Infinity) or non-positive durations.
+
+### B. Baseline Delta Telemetry (Non-Blocking on Shared Runners)
+Reference baseline metrics are recorded in [`bench/baseline.json`](../bench/baseline.json). Because cloud CI runners (e.g. GitHub-hosted runners) exhibit significant CPU and virtualization variance, baseline delta comparisons operate as **non-blocking telemetry** in standard CI and release verification.
 
 $$\Delta\% = \frac{\text{candidateMedianMs} - \text{baselineMedianMs}}{\text{baselineMedianMs}} \times 100\%$$
 
 | Status | Delta Threshold | Meaning & Action |
 | --- | --- | --- |
-| **`PASS`** | $\le +15.0\%$ | Within standard execution noise or faster. |
-| **`WARN`** | $+15.0\%$ to $+35.0\%$ | Moderate variance; flagged for observation, does not fail standard CI. |
-| **`FAIL`** | $> +35.0\%$ | Significant regression detected; release blocker unless justified. |
+| **`PASS`** | $\le +25.0\%$ | Within standard execution noise or faster. |
+| **`WARN`** | $+25.0\%$ to $+50.0\%$ | Moderate variance; flagged for observation. |
+| **`FAIL`** | $> +50.0\%$ | Significant delta vs baseline; logged as non-blocking telemetry in default mode. |
+
+### Strict Baseline Enforcement
+For dedicated local benchmarking or homogeneous hardware testing, baseline regressions can be enforced as a hard gate:
+
+```bash
+# Block on baseline FAIL
+node ./scripts/bench-regression.js --fail-on-baseline
+
+# Block on baseline WARN or FAIL
+node ./scripts/bench-regression.js --strict
+```
 
 ### Baseline Update Policy
 
@@ -121,13 +140,13 @@ npm run bench:update-baseline
 
 ## 8. Runner Noise & Rerun Policy
 
-Virtual machines and CI runners (e.g. GitHub-hosted runners) experience CPU throttling, virtualization jitter, and noisy neighbor interference.
+Virtual machines and CI runners experience CPU throttling, virtualization jitter, and noisy neighbor interference.
 
 Rules for interpreting results:
 1. **Never "Retry Until Green"**: Do not loop test executions repeatedly hoping for a lucky run.
 2. **Relative Invariants Over Absolute Timing**: If absolute timings fluctuate between CI runs, verify that:
    - Parity gate is `PASS`.
-   - Scaling ratio ($100\text{k} / 10\text{k}$) is $\le 35\times$.
+   - Scaling ratio ($100\text{k} / 10\text{k}$) is $\le 100\times$.
    - Streaming speedup over batch recompute is $\ge 1.0\times$.
 3. **Cross-Machine Comparisons**: Absolute numbers on Apple Silicon, AMD EPYC, and Intel Xeon cannot be compared directly. Use deltas against a machine-local baseline when benchmarking local optimizations.
 

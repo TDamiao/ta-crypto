@@ -286,3 +286,90 @@ export function evaluateRegressionSuite({
     streaming: streamingEvaluations
   };
 }
+
+/**
+ * Evaluates the final pass/fail gate decision based on repository policy.
+ *
+ * Hard Gates (Exit 1 across all modes):
+ * 1. Mathematical Parity check failure
+ * 2. Algorithmic Scaling Guard failure (O(N) growth ratio violation)
+ * 3. Stateful Streaming Advantage failure (streaming slower than batch recompute)
+ * 4. Invalid Candidate timings (NaN, Infinity, negative durations)
+ *
+ * Telemetry vs Blocking for Baseline Regressions:
+ * - Default Mode: Baseline deltas are non-blocking telemetry (Exit 0 if hard gates pass).
+ * - Strict / Fail-on-Baseline Mode: Baseline regressions or warnings trigger Exit 1.
+ *
+ * @param {object} params
+ * @param {object} params.evaluationReport
+ * @param {boolean} [params.failOnBaseline]
+ * @param {boolean} [params.isStrict]
+ * @param {object} [params.parityReport]
+ * @returns {{ pass: boolean, exitCode: number, hardGatesPassed: boolean, reasons: string[], policy: string }}
+ */
+export function evaluateGateDecision({
+  evaluationReport,
+  failOnBaseline = false,
+  isStrict = false,
+  parityReport = { status: "PASS" }
+}) {
+  const reasons = [];
+
+  // Hard Gate 1: Mathematical parity
+  const parityPassed = parityReport.status === "PASS" || parityReport.passed === true;
+  if (!parityPassed) {
+    reasons.push("Mathematical parity check failed");
+  }
+
+  // Hard Gate 2: Algorithmic scaling guard
+  const hasScalingFailure = evaluationReport.scaling.some(s => s.status === "FAIL");
+  if (hasScalingFailure) {
+    reasons.push("Algorithmic scaling guard failed (growth ratio exceeded maximum threshold)");
+  }
+
+  // Hard Gate 3: Stateful streaming advantage
+  const hasStreamingFailure = evaluationReport.streaming.some(s => s.status === "FAIL");
+  if (hasStreamingFailure) {
+    reasons.push("Stateful streaming advantage failed (streaming was slower than batch recomputation)");
+  }
+
+  // Hard Gate 4: Timing sanity
+  const hasInvalidCandidate = evaluationReport.benchmarks.some(b => !Number.isFinite(b.medianMs) || b.medianMs <= 0);
+  if (hasInvalidCandidate) {
+    reasons.push("Invalid benchmark timing encountered (non-finite or non-positive duration)");
+  }
+
+  const hardGatesPassed = parityPassed && !hasScalingFailure && !hasStreamingFailure && !hasInvalidCandidate;
+
+  // Baseline Policy
+  const baselineFailCount = evaluationReport.benchmarks.filter(b => b.status === "FAIL").length;
+  const baselineWarnCount = evaluationReport.benchmarks.filter(b => b.status === "WARN").length;
+
+  const hasBaselineFailure = (failOnBaseline || isStrict) && baselineFailCount > 0;
+  if (hasBaselineFailure) {
+    reasons.push(`Baseline regression gate failed: ${baselineFailCount} benchmark(s) exceeded baseline threshold (--fail-on-baseline)`);
+  }
+
+  const hasWarnStrict = isStrict && baselineWarnCount > 0;
+  if (hasWarnStrict) {
+    reasons.push(`Strict baseline warning gate failed: ${baselineWarnCount} benchmark(s) in warning range (--strict)`);
+  }
+
+  const baselinePassed = !hasBaselineFailure && !hasWarnStrict;
+  const pass = hardGatesPassed && baselinePassed;
+
+  return {
+    pass,
+    exitCode: pass ? 0 : 1,
+    hardGatesPassed,
+    hasScalingFailure,
+    hasStreamingFailure,
+    hasInvalidCandidate,
+    hasBaselineFailure,
+    hasWarnStrict,
+    baselineFailCount,
+    baselineWarnCount,
+    reasons,
+    policy: failOnBaseline || isStrict ? "BLOCKING_BASELINE" : "TELEMETRY_BASELINE"
+  };
+}

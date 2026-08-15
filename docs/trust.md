@@ -24,8 +24,9 @@ Release workflows repeat build, test, and compatibility checks before publicatio
 
 The source of truth for tolerance, burn-in, alignment, and blocking references is [`scripts/compat-policy.json`](../scripts/compat-policy.json).
 
-- TA-Lib and `technicalindicators` are blocking references for the current matrix.
-- pandas-ta is non-blocking telemetry because availability and behavior can vary by environment.
+- **TA-Lib**: Blocking reference for the verified indicator matrix.
+- **`technicalindicators`**: Blocking reference for the verified indicator matrix.
+- **pandas-ta**: Non-blocking telemetry with known non-blocking initialization/normalization divergences (e.g. +DI/-DI) documented in [Compatibility](compatibility.md).
 - Comparisons use overlapping non-null points after indicator-specific burn-in.
 - Golden fixtures detect project regressions but are not independent formula proof.
 
@@ -33,18 +34,34 @@ See [Compatibility](compatibility.md) for the complete matrix and ATR/ADX initia
 
 ## Verify locally
 
+Core build, quality checks, test suite, and regression benchmarks:
+
 ```bash
 npm ci
+npm run check
+```
+
+Or individual stages:
+
+```bash
+npm run check:quality
 npm test
 npm run test:golden
+npm run bench:regression
 npm run test:compat:technicalindicators
 ```
 
-For Python references:
+For Python references and full matrix compatibility:
 
 ```bash
 python -m pip install -r scripts/requirements-compat.txt
-npm run test:compat:python
+npm run test:compat
+```
+
+Full release readiness verification gate (including packaging dry-run):
+
+```bash
+npm run release:check
 ```
 
 CI uses Linux and Python 3.12 for the full Python reference job. TA-Lib and pandas-ta availability may differ locally.
