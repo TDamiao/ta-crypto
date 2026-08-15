@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_tag:
-        description: "Release tag to publish (e.g. v0.4.0)"
+        description: "Release tag to publish (e.g. v0.4.1)"
         required: false
         default: ""
 
@@ -46,12 +46,10 @@ jobs:
         with:
           ref: ${{ inputs.publish_tag != '' && inputs.publish_tag || needs.release.outputs.tag_name }}
 
-      - name: Setup Node.js for Publishing
+      - name: Setup Node.js for OIDC Trusted Publishing
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
-          registry-url: "https://registry.npmjs.org"
-          cache: npm
 
       - name: Setup Python for Compatibility Verification
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -85,7 +83,7 @@ jobs:
           npm pack
           node ./scripts/generate-sbom.js
 
-      - name: Validate exact artifact, SBOMs, and tag alignment
+      - name: Validate exact artifact, payload documentation invariant, SBOMs, and tag alignment
         run: node ./scripts/validate-release-artifact.js --tag=${{ inputs.publish_tag != '' && inputs.publish_tag || needs.release.outputs.tag_name }} --check-npm
 
       - name: Upload release artifact and SBOM evidence
@@ -96,7 +94,5 @@ jobs:
             ta-crypto-*.tgz
             ta-crypto-*.sbom.*.json
 
-      - name: Publish to npm with Provenance
+      - name: Publish to npm via OIDC Trusted Publishing
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -59,7 +59,7 @@ GitHub Issues serve as the single operational task source of truth and backlog:
 
 ## 5. Scope Discipline
 
-Codex must strictly distinguish between **shipped functionality** (`v0.3.4`), **approved current scope** (v0.4 core hardening issues), and **deferred roadmap work**.
+Codex must strictly distinguish between **shipped functionality** (`v0.4.0`), **approved current scope** (v0.4.1 patch hardening), and **deferred roadmap work**.
 
 Do NOT implement or advertise deferred roadmap scope unless explicitly instructed by a scoped issue:
 - Backtesting or portfolio accounting engines
