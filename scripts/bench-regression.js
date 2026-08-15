@@ -32,15 +32,15 @@ import {
 import { getDataset, BENCH_SIZES } from "./bench/dataset.js";
 import { measureBenchmark, getEnvironmentMetadata, formatAsciiTable } from "./bench/harness.js";
 import { runComprehensiveParityGate } from "./bench/parity.js";
-import { evaluateRegressionSuite, DEFAULT_THRESHOLDS } from "./bench/regression-evaluator.js";
+import { evaluateRegressionSuite, evaluateGateDecision, DEFAULT_THRESHOLDS } from "./bench/regression-evaluator.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASELINE_FILE = path.resolve(__dirname, "../bench/baseline.json");
 
 const args = process.argv.slice(2);
 const isJsonOutput = args.includes("--json");
-const isStrict = args.includes("--strict") || process.env.BENCH_STRICT === "true";
-const failOnBaseline = args.includes("--fail-on-baseline") || process.env.BENCH_FAIL_ON_BASELINE === "true";
+const isStrict = args.includes("--strict") || process.env.BENCH_STRICT === "true" || process.env.TA_BENCH_STRICT === "true";
+const failOnBaseline = args.includes("--fail-on-baseline") || process.env.BENCH_FAIL_ON_BASELINE === "true" || process.env.TA_BENCH_FAIL_ON_BASELINE === "true";
 const outArg = args.find(a => a.startsWith("--out="));
 const outputPath = outArg ? path.resolve(process.cwd(), outArg.split("=")[1]) : null;
 
@@ -393,12 +393,20 @@ const evaluationReport = evaluateRegressionSuite({
   streamingPairs
 });
 
+const gateDecision = evaluateGateDecision({
+  evaluationReport,
+  failOnBaseline,
+  isStrict,
+  parityReport
+});
+
 const env = getEnvironmentMetadata();
 const fullReport = {
   $schemaVersion: 1,
   timestamp: new Date().toISOString(),
   environment: env,
   parityGate: { status: "PASS", checksPassed: parityReport.checksCount },
+  gateDecision,
   ...evaluationReport
 };
 
@@ -455,25 +463,30 @@ if (isJsonOutput) {
   console.log(formatAsciiTable(streamHeaders, streamRows));
 
   console.log("\n================================================================================");
-  console.log(` SUMMARY: ${evaluationReport.overallStatus} ` +
-    `(Pass: ${evaluationReport.summary.passCount}, ` +
-    `Warn: ${evaluationReport.summary.warnCount}, ` +
-    `Fail: ${evaluationReport.summary.failCount}, ` +
-    `New: ${evaluationReport.summary.newCount})`);
+  console.log(" PERFORMANCE VERIFICATION SUMMARY");
+  console.log("================================================================================");
+  console.log(`  Mathematical Parity Gate:       PASS (${parityReport.checksCount}/${parityReport.checksCount} checks passed)`);
+  console.log(`  Algorithmic Scaling Guard:      ${!gateDecision.hasScalingFailure ? "PASS" : "FAIL"} (${evaluationReport.scaling.filter(s => s.status === "PASS").length}/${evaluationReport.scaling.length} O(N) guards <= ${DEFAULT_THRESHOLDS.scalingRatioMax}x)`);
+  console.log(`  Stateful Streaming Advantage:   ${!gateDecision.hasStreamingFailure ? "PASS" : "FAIL"} (${evaluationReport.streaming.filter(s => s.status === "PASS").length}/${evaluationReport.streaming.length} streaming constructors faster than batch recompute)`);
+  console.log(`  Timing Invariant Sanity:        ${!gateDecision.hasInvalidCandidate ? "PASS" : "FAIL"} (${evaluationReport.benchmarks.filter(b => Number.isFinite(b.medianMs) && b.medianMs > 0).length}/${evaluationReport.benchmarks.length} valid timings)`);
+
+  if (gateDecision.policy === "TELEMETRY_BASELINE") {
+    console.log(`  Baseline Delta Telemetry:       ${gateDecision.baselineFailCount > 0 ? `${gateDecision.baselineFailCount} deltas exceeded baseline (non-blocking on shared runner)` : "within baseline limits"}`);
+  } else {
+    console.log(`  Baseline Delta Gate (Strict):   ${!gateDecision.hasBaselineFailure && !gateDecision.hasWarnStrict ? "PASS" : "FAIL"} (Fail: ${gateDecision.baselineFailCount}, Warn: ${gateDecision.baselineWarnCount})`);
+  }
+
+  console.log("--------------------------------------------------------------------------------");
+  if (gateDecision.pass) {
+    if (gateDecision.baselineFailCount > 0 && gateDecision.policy === "TELEMETRY_BASELINE") {
+      console.log(" GATE DECISION: PASS (Hard gates satisfied; baseline deltas logged as non-blocking telemetry)");
+    } else {
+      console.log(" GATE DECISION: PASS (All performance gates and baseline comparisons satisfied)");
+    }
+  } else {
+    console.log(` GATE DECISION: FAIL (${gateDecision.reasons.join("; ")})`);
+  }
   console.log("================================================================================\n");
 }
 
-// Hard Gates:
-// 1. Parity Gate (checked above)
-// 2. Scaling Guard (growth ratio <= 35x)
-// 3. Streaming Advantage (speedup >= 1.0x)
-// 4. Invalid Candidate (no NaN/Infinity/negative timings)
-// 5. Baseline Regression (only if --fail-on-baseline or --strict is requested)
-const hasScalingFailure = evaluationReport.scaling.some(s => s.status === "FAIL");
-const hasStreamingFailure = evaluationReport.streaming.some(s => s.status === "FAIL");
-const hasInvalidCandidate = evaluationReport.benchmarks.some(b => !Number.isFinite(b.medianMs) || b.medianMs <= 0);
-const hasBaselineFailure = (failOnBaseline || isStrict) && evaluationReport.summary.failCount > 0;
-const hasWarnStrict = isStrict && evaluationReport.summary.warnCount > 0;
-
-const shouldFail = hasScalingFailure || hasStreamingFailure || hasInvalidCandidate || hasBaselineFailure || hasWarnStrict;
-process.exit(shouldFail ? 1 : 0);
+process.exit(gateDecision.exitCode);

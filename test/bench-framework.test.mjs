@@ -13,6 +13,7 @@ import {
   evaluateScalingRatio,
   evaluateStreamingSpeedup,
   evaluateRegressionSuite,
+  evaluateGateDecision,
   DEFAULT_THRESHOLDS
 } from "../scripts/bench/regression-evaluator.js";
 
@@ -313,4 +314,143 @@ test("baseline immutability: evaluateRegressionSuite does not mutate baseline fi
 
   const contentAfter = fs.readFileSync(BASELINE_PATH, "utf8");
   assert.equal(contentBefore, contentAfter, "baseline file must remain unmodified after evaluation");
+});
+
+test("gate decision: default mode treats baseline regressions as non-blocking telemetry (exit 0)", () => {
+  const evaluationReport = {
+    benchmarks: [
+      { id: "b1", medianMs: 50.0, status: "FAIL" }, // baseline regression
+      { id: "b2", medianMs: 10.0, status: "PASS" }
+    ],
+    scaling: [{ id: "s1", name: "sma(20)", status: "PASS" }],
+    streaming: [{ id: "st1", name: "createSMA(20)", status: "PASS" }],
+    summary: { failCount: 1, warnCount: 0, passCount: 1, newCount: 0 }
+  };
+
+  const decision = evaluateGateDecision({
+    evaluationReport,
+    failOnBaseline: false,
+    isStrict: false,
+    parityReport: { status: "PASS" }
+  });
+
+  assert.equal(decision.pass, true);
+  assert.equal(decision.exitCode, 0);
+  assert.equal(decision.hardGatesPassed, true);
+  assert.equal(decision.policy, "TELEMETRY_BASELINE");
+  assert.equal(decision.baselineFailCount, 1);
+});
+
+test("gate decision: failOnBaseline triggers exit 1 when baseline regressions exist", () => {
+  const evaluationReport = {
+    benchmarks: [
+      { id: "b1", medianMs: 50.0, status: "FAIL" },
+      { id: "b2", medianMs: 10.0, status: "PASS" }
+    ],
+    scaling: [{ id: "s1", name: "sma(20)", status: "PASS" }],
+    streaming: [{ id: "st1", name: "createSMA(20)", status: "PASS" }],
+    summary: { failCount: 1, warnCount: 0, passCount: 1, newCount: 0 }
+  };
+
+  const decision = evaluateGateDecision({
+    evaluationReport,
+    failOnBaseline: true,
+    isStrict: false,
+    parityReport: { status: "PASS" }
+  });
+
+  assert.equal(decision.pass, false);
+  assert.equal(decision.exitCode, 1);
+  assert.equal(decision.hardGatesPassed, true);
+  assert.equal(decision.hasBaselineFailure, true);
+  assert.equal(decision.policy, "BLOCKING_BASELINE");
+});
+
+test("gate decision: isStrict triggers exit 1 on baseline warnings", () => {
+  const evaluationReport = {
+    benchmarks: [
+      { id: "b1", medianMs: 13.5, status: "WARN" },
+      { id: "b2", medianMs: 10.0, status: "PASS" }
+    ],
+    scaling: [{ id: "s1", name: "sma(20)", status: "PASS" }],
+    streaming: [{ id: "st1", name: "createSMA(20)", status: "PASS" }],
+    summary: { failCount: 0, warnCount: 1, passCount: 1, newCount: 0 }
+  };
+
+  const decision = evaluateGateDecision({
+    evaluationReport,
+    failOnBaseline: false,
+    isStrict: true,
+    parityReport: { status: "PASS" }
+  });
+
+  assert.equal(decision.pass, false);
+  assert.equal(decision.exitCode, 1);
+  assert.equal(decision.hasWarnStrict, true);
+});
+
+test("gate decision: hard gate failures cause exit 1 in all modes", () => {
+  // 1. Parity Failure
+  const parityFail = evaluateGateDecision({
+    evaluationReport: {
+      benchmarks: [{ id: "b1", medianMs: 10.0, status: "PASS" }],
+      scaling: [{ id: "s1", status: "PASS" }],
+      streaming: [{ id: "st1", status: "PASS" }],
+      summary: { failCount: 0, warnCount: 0, passCount: 1, newCount: 0 }
+    },
+    failOnBaseline: false,
+    isStrict: false,
+    parityReport: { status: "FAIL" }
+  });
+  assert.equal(parityFail.pass, false);
+  assert.equal(parityFail.exitCode, 1);
+  assert.equal(parityFail.hardGatesPassed, false);
+
+  // 2. Scaling Failure
+  const scalingFail = evaluateGateDecision({
+    evaluationReport: {
+      benchmarks: [{ id: "b1", medianMs: 10.0, status: "PASS" }],
+      scaling: [{ id: "s1", status: "FAIL" }],
+      streaming: [{ id: "st1", status: "PASS" }],
+      summary: { failCount: 1, warnCount: 0, passCount: 1, newCount: 0 }
+    },
+    failOnBaseline: false,
+    isStrict: false,
+    parityReport: { status: "PASS" }
+  });
+  assert.equal(scalingFail.pass, false);
+  assert.equal(scalingFail.exitCode, 1);
+  assert.equal(scalingFail.hasScalingFailure, true);
+
+  // 3. Streaming Failure
+  const streamingFail = evaluateGateDecision({
+    evaluationReport: {
+      benchmarks: [{ id: "b1", medianMs: 10.0, status: "PASS" }],
+      scaling: [{ id: "s1", status: "PASS" }],
+      streaming: [{ id: "st1", status: "FAIL" }],
+      summary: { failCount: 1, warnCount: 0, passCount: 1, newCount: 0 }
+    },
+    failOnBaseline: false,
+    isStrict: false,
+    parityReport: { status: "PASS" }
+  });
+  assert.equal(streamingFail.pass, false);
+  assert.equal(streamingFail.exitCode, 1);
+  assert.equal(streamingFail.hasStreamingFailure, true);
+
+  // 4. Invalid Timing Sanity (NaN / non-positive)
+  const invalidTiming = evaluateGateDecision({
+    evaluationReport: {
+      benchmarks: [{ id: "b1", medianMs: NaN, status: "FAIL" }],
+      scaling: [{ id: "s1", status: "PASS" }],
+      streaming: [{ id: "st1", status: "PASS" }],
+      summary: { failCount: 1, warnCount: 0, passCount: 0, newCount: 0 }
+    },
+    failOnBaseline: false,
+    isStrict: false,
+    parityReport: { status: "PASS" }
+  });
+  assert.equal(invalidTiming.pass, false);
+  assert.equal(invalidTiming.exitCode, 1);
+  assert.equal(invalidTiming.hasInvalidCandidate, true);
 });
