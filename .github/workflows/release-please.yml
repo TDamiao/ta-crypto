@@ -49,7 +49,16 @@ jobs:
       - name: Setup Node.js for OIDC Trusted Publishing
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 22
+          node-version: 24
+
+      - name: Ensure Trusted Publishing compatible npm CLI version
+        run: npm install --global npm@11.5.1
+
+      - name: Assert Trusted Publishing runtime requirements (Node >= 22.14.0, npm >= 11.5.1)
+        run: |
+          node --version
+          npm --version
+          node ./scripts/check-publish-runtime.js
 
       - name: Setup Python for Compatibility Verification
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0

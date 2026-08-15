@@ -42,6 +42,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "release:check": "npm run check:actions && npm run security:audit && npm run docs:check && npm test && npm run test:compat:technicalindicators && npm pack --dry-run",
     "check:actions": "node ./scripts/check-actions-pinned.js",
+    "check:runtime": "node ./scripts/check-publish-runtime.js",
     "docs:check": "node ./scripts/check-docs.js",
     "security:audit": "node ./scripts/security-audit.js",
     "generate:sbom": "node ./scripts/generate-sbom.js",

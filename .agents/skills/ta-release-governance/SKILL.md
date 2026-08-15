@@ -16,6 +16,7 @@ This skill governs release decision-making, release cadence enforcement, version
 3. **Reference Release Policy**: All decisions MUST comply with [`docs/release-policy.md`](../../../docs/release-policy.md).
 4. **Automation Authority**: Release Please and GitHub Actions are the ONLY publication authority. This skill evaluates governance eligibility—it does NOT execute local publishes or tag creation.
 5. **Published Documentation Version Invariant**: Before approving or classifying any release candidate, the candidate package payload (`npm pack` tarball) must be inspected to verify that `package/README.md` and `package/package.json` declare the correct current release line or version (e.g., `v0.4` for `0.4.x`, `v0.5` for `0.5.x`, `v1.0` for `1.0.x`) and strictly contain zero obsolete prior stable release claims.
+6. **Trusted Publishing Runtime Invariant**: npm Trusted Publishing with cryptographic provenance generation strictly requires Node.js `>=22.14.0` and npm CLI `>=11.5.1`. The publication workflow must explicitly guarantee compatible Node and npm versions (e.g. Node 24 and explicit npm CLI upgrade `>=11.5.1`), validate runtime assertions via `scripts/check-publish-runtime.js`, and omit package manager caching on the publish job to guarantee a clean, unpolluted release environment.
 
 ---
 
@@ -52,7 +53,12 @@ graph TD
     - Run `node ./scripts/validate-release-artifact.js`.
 11. **Verify CI Status**: Confirm all GitHub Actions workflows pass clean on `main`.
 12. **Evaluate Release Cadence**: Check date of last release to enforce weekly cadence.
-13. **Review Supply-Chain & OIDC Configuration**: Confirm GitHub Environment `npm-publish` is configured, permissions are minimal (`contents: read`, `id-token: write`), and publish job has no long-lived tokens.
+13. **Review Supply-Chain, OIDC & Runtime Configuration**:
+    - Confirm GitHub Environment `npm-publish` is configured and permissions are minimal (`contents: read`, `id-token: write`).
+    - Confirm publish job contains zero static tokens (`NODE_AUTH_TOKEN` / `NPM_TOKEN`).
+    - Verify that publish runtime explicitly requires Node.js `>=22.14.0` (or Node 24) and npm CLI `>=11.5.1` (never assume unverified versions).
+    - Run `node ./scripts/check-publish-runtime.js` to ensure the runtime assertion passes.
+    - Confirm package manager caching is disabled on the release publish job.
 
 ---
 
@@ -110,6 +116,13 @@ Always format governance recommendations using this structure:
 - **Candidate Package Version**: <e.g. 0.4.1>
 - **Tarball README Status**: [ VALID / INVALID ] (declares release line <e.g. v0.4>)
 - **Artifact Validator**: [ PASS / FAIL ]
+
+#### Trusted Publishing Runtime Invariant
+- **Publish Node Version**: <e.g. Node 24 (>=22.14.0)>
+- **Publish npm Version**: <e.g. npm >=11.5.1>
+- **Runtime Checker**: [ PASS / FAIL ]
+- **OIDC Token Isolation**: [ VERIFIED / UNVERIFIED ] (zero NODE_AUTH_TOKEN)
+- **Publish Cache**: [ DISABLED / ENABLED ]
 
 #### Rationale & Release Advice
 [Detailed explanation of why HOLD or RELEASE is recommended]

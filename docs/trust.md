@@ -80,6 +80,8 @@ Local commands do not create release commits, tags, GitHub Releases, or npm publ
 `ta-crypto` enforces verifiable supply-chain security:
 
 - **npm Trusted Publishing (OIDC)**: npm authenticates publication requests directly against GitHub's OpenID Connect identity provider using short-lived tokens generated per workflow run (`id-token: write`) under the protected GitHub Environment `npm-publish` (`TDamiao/ta-crypto`, workflow: `.github/workflows/release-please.yml`, environment: `npm-publish`). No permanent npm tokens are used in the publication workflow.
+- **Trusted Publishing Runtime Invariant**: npm Trusted Publishing with cryptographic provenance generation strictly requires Node.js `>=22.14.0` and npm CLI `>=11.5.1`. The release workflow uses Node.js 24, pins npm CLI `>=11.5.1`, and validates runtime requirements via `scripts/check-publish-runtime.js` before executing build, test, and publish steps.
+- **Pristine Release Environment**: The publish workflow omits package manager caching (`cache: npm`) to prevent cache contamination and ensure publication occurs from an uncontaminated, deterministic build environment.
 - **Cryptographic Provenance (SLSA)**: Packages are published with `--provenance`. Consumers can inspect the cryptographic attestation linking the published tarball to the exact GitHub repository, commit SHA, workflow (`.github/workflows/release-please.yml`), environment (`npm-publish`), and tag.
 - **How Consumers Verify Provenance**:
   ```bash
